@@ -24,8 +24,28 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 final class WSSF_Security {
 
     private const RATE_LIMIT_GUEST  = 30;
-    private const RATE_LIMIT_USER   = 300;
     private const RATE_LIMIT_WINDOW = 60;
+
+    /**
+     * Elevated limit for a logged-in user on the community theme.
+     *
+     * The elevation exists for WPCommunity (WPShop): a community site with
+     * subscriptions, where a signed-in visitor is expected to search a lot.
+     * It is bound to the theme, not to authentication alone — a logged-in
+     * user on any other theme gets the guest limit.
+     */
+    private const RATE_LIMIT_USER = 300;
+
+    /**
+     * Limit for a logged-in user on a theme that is not the community theme.
+     *
+     * Separate constant on purpose: it equals the guest limit today, but the
+     * owner can raise it (or a filter can) without touching the guest limit.
+     */
+    private const RATE_LIMIT_USER_FOREIGN = 30;
+
+    /** Default theme slug the elevated limit belongs to. */
+    private const COMMUNITY_THEME = 'wpcommunity';
 
     /**
      * Bucket for requests whose client IP cannot be determined. Sharing one
@@ -33,6 +53,9 @@ final class WSSF_Security {
      * without a usable REMOTE_ADDR must not be an unlimited request.
      */
     private const UNKNOWN_CLIENT_KEY = 'wssf_rl_unknown';
+
+    /** Theme detection result of the current request; see is_community_theme(). */
+    private static ?bool $community_theme = null;
 
     public function __construct( private WSSF_Cache $cache ) {}
 
@@ -177,19 +200,85 @@ final class WSSF_Security {
     }
 
     /**
+     * Whether the active theme is the community theme (or a child of it).
+     *
+     * The only source is `get_template()` — the parent theme slug of the
+     * active theme. A child theme of WPCommunity returns "wpcommunity" too,
+     * which is what we want: the community features come from the parent.
+     * Nothing from the request takes part: no cookie, no header, no option,
+     * so a visitor cannot talk the limiter into the elevated limit.
+     *
+     * `wssf_rate_limit_theme_slug` lets the owner point the elevation at a
+     * renamed or forked theme without touching the code.
+     */
+    public function is_community_theme(): bool {
+        if ( self::$community_theme !== null ) {
+            return self::$community_theme;
+        }
+
+        $expected = strtolower( trim( (string) apply_filters( 'wssf_rate_limit_theme_slug', self::COMMUNITY_THEME ) ) );
+
+        $template = '';
+        if ( function_exists( 'get_template' ) ) {
+            $template = (string) get_template();
+        }
+
+        // Fallback for early requests: wp_get_theme()->get_template() is the
+        // same value as get_template().
+        if ( $template === '' && function_exists( 'wp_get_theme' ) ) {
+            $theme = wp_get_theme();
+            if ( is_object( $theme ) && method_exists( $theme, 'get_template' ) ) {
+                $template = (string) $theme->get_template();
+            }
+        }
+
+        $template = strtolower( trim( $template ) );
+
+        self::$community_theme = ( $expected !== '' && $template !== '' && $template === $expected );
+
+        return self::$community_theme;
+    }
+
+    /**
+     * The request limit that applies to the current visitor.
+     *
+     * Guests always get the guest limit, whatever the theme. A logged-in user
+     * gets the elevated limit only on the community theme; on any other theme
+     * the foreign-theme limit applies. `wssf_rate_limit_max` overrides the
+     * result (receives the limit, whether the visitor is logged in, and
+     * whether the community theme was recognised).
+     */
+    public function effective_rate_limit(): int {
+        $is_user      = get_current_user_id() > 0;
+        $community    = $this->is_community_theme();
+
+        if ( $is_user ) {
+            $max = $community ? self::RATE_LIMIT_USER : self::RATE_LIMIT_USER_FOREIGN;
+        } else {
+            $max = self::RATE_LIMIT_GUEST;
+        }
+
+        $filtered = (int) apply_filters( 'wssf_rate_limit_max', $max, $is_user, $community );
+
+        return max( 0, $filtered );
+    }
+
+    /**
      * @return array{0:string,1:int} Counter key and its limit.
      */
     private function rate_limit_key_and_max(): array {
+        $max = $this->effective_rate_limit();
+
         $user_id = get_current_user_id();
         if ( $user_id > 0 ) {
-            return [ 'wssf_rl_u_' . $user_id, self::RATE_LIMIT_USER ];
+            return [ 'wssf_rl_u_' . $user_id, $max ];
         }
 
         $ip = $this->get_client_ip();
         if ( $ip === '' ) {
-            return [ self::UNKNOWN_CLIENT_KEY, self::RATE_LIMIT_GUEST ];
+            return [ self::UNKNOWN_CLIENT_KEY, $max ];
         }
 
-        return [ 'wssf_rl_ip_' . md5( $ip ), self::RATE_LIMIT_GUEST ];
+        return [ 'wssf_rl_ip_' . md5( $ip ), $max ];
     }
 }

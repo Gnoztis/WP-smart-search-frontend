@@ -49,6 +49,26 @@ $diag_enabled = (bool) $env['diag_enabled'];
                 </td>
             </tr>
             <tr>
+                <th><?php esc_html_e( 'Тема и лимит запросов', 'wp-smart-search-frontend' ); ?></th>
+                <td>
+                    <code><?php echo esc_html( $env['theme_template'] !== '' ? (string) $env['theme_template'] : '—' ); ?></code>
+                    · <?php esc_html_e( 'WPCommunity:', 'wp-smart-search-frontend' ); ?>
+                    <span class="<?php echo esc_attr( $env['theme_is_community'] === 'yes' ? 'ok' : 'bad' ); ?>">
+                        <?php echo esc_html( $env['theme_is_community'] === 'yes'
+                            ? __( 'распознана', 'wp-smart-search-frontend' )
+                            : __( 'нет', 'wp-smart-search-frontend' ) ); ?>
+                    </span>
+                    · <?php esc_html_e( 'лимит для вас:', 'wp-smart-search-frontend' ); ?>
+                    <strong><?php echo (int) $env['rate_limit']; ?></strong>
+                    <?php esc_html_e( 'запросов в минуту', 'wp-smart-search-frontend' ); ?>
+                    <?php if ( $env['theme_is_community'] !== 'yes' ) : ?>
+                        <p class="description">
+                            <?php esc_html_e( 'Повышенный лимит действует только на теме WPCommunity (и её дочерних); на другой теме авторизованный получает гостевой лимит.', 'wp-smart-search-frontend' ); ?>
+                        </p>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
                 <th><?php esc_html_e( 'Кэш результатов', 'wp-smart-search-frontend' ); ?></th>
                 <td>
                     <span class="<?php echo esc_attr( $env['cache_backend'] === 'redis' ? 'ok' : 'bad' ); ?>">

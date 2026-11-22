@@ -76,7 +76,19 @@ final class WSSF_Admin_Diagnostics {
             'cleantalk_key_ok'     => 'N/A',
             'cleantalk_cookies'    => 'N/A',
             'diag_enabled'         => (bool) apply_filters( 'wssf_diag_enabled', false ),
+            'theme_template'       => '',
+            'theme_is_community'   => 'no',
+            'rate_limit'           => 0,
         ];
+
+        try {
+            $env['theme_template'] = function_exists( 'get_template' ) ? (string) get_template() : '';
+            $plugin = WSSF_Plugin::instance();
+            if ( $plugin instanceof WSSF_Plugin ) {
+                $env['theme_is_community'] = $plugin->security->is_community_theme() ? 'yes' : 'no';
+                $env['rate_limit']         = $plugin->security->effective_rate_limit();
+            }
+        } catch ( \Throwable $e ) { /* ignore */ }
 
         try {
             $env['mysql_version'] = (string) $wpdb->get_var( 'SELECT VERSION()' );
@@ -756,6 +768,8 @@ final class WSSF_Admin_Diagnostics {
         $out[] = 'WordPress    : ' . $env['wp_version'];
         $out[] = 'MySQL        : ' . $env['mysql_version'];
         $out[] = 'mbstring     : ' . $env['mbstring'];
+        $out[] = 'theme        : ' . $env['theme_template'] . ( $env['theme_is_community'] === 'yes' ? ' (WPCommunity recognised)' : ' (not WPCommunity)' );
+        $out[] = 'rate limit   : ' . ( $env['rate_limit'] > 0 ? (string) (int) $env['rate_limit'] . '/min' : 'off' );
         $out[] = 'redis ext    : ' . $env['redis_ext'];
         $out[] = 'cache backend: ' . $env['cache_backend'] . ( $env['cache_backoff'] > 0 ? ' (backoff ' . (int) $env['cache_backoff'] . 's)' : '' );
         $out[] = 'redis server : ' . ( $env['redis_server_version'] !== '' ? $env['redis_server_version'] : 'N/A' );
@@ -783,6 +797,8 @@ final class WSSF_Admin_Diagnostics {
             $out[] = 'mysql_version        : ' . $env['mysql_version'];
             $out[] = 'mbstring             : ' . $env['mbstring'];
             $out[] = 'redis_ext            : ' . $env['redis_ext'];
+            $out[] = 'theme                : ' . $env['theme_template'] . ( $env['theme_is_community'] === 'yes' ? ' (WPCommunity recognised)' : ' (not WPCommunity)' );
+            $out[] = 'rate_limit           : ' . ( $env['rate_limit'] > 0 ? (string) (int) $env['rate_limit'] . '/min' : 'off' );
             $out[] = 'cache_backend        : ' . $env['cache_backend'] . ( $env['cache_backoff'] > 0 ? ' (backoff ' . (int) $env['cache_backoff'] . 's)' : '' );
             $out[] = 'redis_server_version : ' . ( $env['redis_server_version'] !== '' ? $env['redis_server_version'] : 'N/A' );
             $out[] = 'redis_client_version : ' . ( $env['redis_client_version'] !== '' ? $env['redis_client_version'] : 'N/A' );
