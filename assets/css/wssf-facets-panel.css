@@ -1,0 +1,156 @@
+/* ============================================================
+   Кнопка «Фильтры» + off-canvas панель (только мобильный)
+   ============================================================ */
+
+/* На десктопе — скрыто полностью */
+.wssf-filters-toggle,
+.wssf-facets-panel,
+.wssf-facets-backdrop {
+    display: none;
+}
+
+@media (max-width: 767.98px) {
+    /* Кнопка «Фильтры» */
+    .wssf-filters-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        background: var(--wssf-chip-bg);
+        border: 1px solid var(--wssf-border);
+        border-radius: var(--wssf-radius-md);
+        color: var(--wssf-text);
+        font-family: inherit;
+        font-size: .9rem;
+        line-height: 1.4;
+        cursor: pointer;
+        margin-bottom: 12px;
+        -webkit-tap-highlight-color: transparent;
+    }
+    .wssf-filters-toggle:hover,
+    .wssf-filters-toggle:focus-visible {
+        background: var(--wssf-chip-bg-hover);
+        outline: none;
+        border-color: var(--wssf-border-focus);
+    }
+    .wssf-filters-toggle-icon {
+        color: var(--wssf-primary);
+        font-size: 1rem;
+    }
+    .wssf-filters-toggle-badge {
+        display: inline-flex;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        background: var(--wssf-primary);
+        color: #fff;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+        align-items: center;
+        justify-content: center;
+    }
+    .wssf-filters-toggle-badge[hidden] { display: none; }
+
+    /* Скрываем cat/pt/active-filters из потока — JS переносит их в панель */
+    .wssf-search-form .wssf-select { display: none !important; }
+    .wssf-active-filters { display: none !important; }
+
+    /* Off-canvas панель */
+    .wssf-facets-panel {
+        display: flex;
+        flex-direction: column;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        max-height: 85vh;
+        background: var(--wssf-card-bg);
+        border-top: 1px solid var(--wssf-border);
+        border-radius: var(--wssf-radius-lg) var(--wssf-radius-lg) 0 0;
+        box-shadow: 0 -8px 32px rgba(0, 0, 0, .45);
+        transform: translateY(100%);
+        transition: transform .25s ease;
+        z-index: 9998;
+        color: var(--wssf-text);
+    }
+    .wssf-facets-panel.is-open { transform: translateY(0); }
+
+    .wssf-facets-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--wssf-border);
+        flex-shrink: 0;
+    }
+    .wssf-facets-panel-title {
+        font-size: 1rem;
+        font-weight: 600;
+    }
+    .wssf-facets-panel-close {
+        background: transparent;
+        border: 0;
+        color: var(--wssf-text-light);
+        font-size: 1.6rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 6px;
+        border-radius: var(--wssf-radius-sm);
+    }
+    .wssf-facets-panel-close:hover { color: var(--wssf-text); }
+
+    .wssf-facets-panel-body {
+        padding: 14px 18px 24px;
+        overflow-y: auto;
+        flex: 1;
+        -webkit-overflow-scrolling: touch;
+    }
+    .wssf-facets-row { margin-bottom: 16px; }
+    .wssf-facets-row .wssf-select {
+        display: block !important;
+        width: 100%;
+    }
+    .wssf-facets-label {
+        display: block;
+        font-size: .8rem;
+        color: var(--wssf-text-light);
+        text-transform: uppercase;
+        letter-spacing: .3px;
+        margin-bottom: 6px;
+    }
+    .wssf-facets-active .wssf-active-filters {
+        display: flex !important;
+        margin: 0;
+        padding: 0;
+        background: transparent;
+        border: 0;
+    }
+
+    /* Backdrop */
+    .wssf-facets-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, .5);
+        z-index: 9997;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity .2s;
+    }
+    .wssf-facets-backdrop.is-open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+    .wssf-facets-backdrop[hidden] {
+        display: none !important;
+    }
+
+    body.wssf-facets-open { overflow: hidden; }
+}
+
+@media (min-width: 768px) {
+    .wssf-facets-panel,
+    .wssf-facets-backdrop { display: none !important; }
+    .wssf-filters-toggle { display: none !important; }
+}

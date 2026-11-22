@@ -1,0 +1,80 @@
+.wssf-active-filters {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+    margin: 0 0 16px; padding: 10px 14px;
+    background: var(--wssf-card-bg); border: 1px solid var(--wssf-border);
+    border-radius: var(--wssf-radius-md); min-width: 0;
+}
+.wssf-active-filters[hidden] { display: none !important; }
+
+.wssf-active-filters-label {
+    color: var(--wssf-text-light); font-size: .8rem;
+    text-transform: uppercase; letter-spacing: .3px;
+    flex-shrink: 0; margin-right: 4px;
+}
+.wssf-active-filters-label--include { color: var(--wssf-success); }
+.wssf-active-filters-label--exclude { color: var(--wssf-error); }
+
+.wssf-filter-chip {
+    display: inline-flex; align-items: stretch;
+    border-radius: 1rem; overflow: hidden;
+    min-width: 0; max-width: 100%;
+}
+.wssf-filter-chip--include {
+    background: rgba(62,207,142,.18);
+    border: 1px solid var(--wssf-success);
+}
+.wssf-filter-chip--exclude {
+    background: rgba(229,83,75,.18);
+    border: 1px solid var(--wssf-error);
+}
+
+.wssf-filter-chip-name {
+    display: inline-flex; align-items: center; padding: 3px 10px;
+    font-size: .85rem; line-height: 1.5;
+    color: var(--wssf-link-hover);
+    overflow-wrap: anywhere; word-break: break-word; min-width: 0;
+}
+.wssf-filter-chip--exclude .wssf-filter-chip-name {
+    text-decoration: line-through;
+    color: var(--wssf-text-light);
+}
+
+.wssf-filter-remove {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0 8px; background: transparent; border: 0;
+    color: var(--wssf-link-hover); font-family: inherit;
+    font-size: 16px; line-height: 1; cursor: pointer;
+    transition: background .15s, color .15s;
+    -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.wssf-filter-chip--include .wssf-filter-remove {
+    border-left: 1px solid rgba(62,207,142,.35);
+}
+.wssf-filter-chip--exclude .wssf-filter-remove {
+    border-left: 1px solid rgba(229,83,75,.35);
+}
+.wssf-filter-chip--include .wssf-filter-remove:hover {
+    background: var(--wssf-success); color: #fff;
+}
+.wssf-filter-chip--exclude .wssf-filter-remove:hover {
+    background: var(--wssf-error); color: #fff;
+}
+.wssf-filter-remove:focus-visible {
+    outline: 2px solid var(--wssf-border-focus); outline-offset: -2px;
+}
+
+.wssf-filter-clear {
+    padding: 3px 12px; background: transparent;
+    border: 1px solid var(--wssf-border); border-radius: 1rem;
+    color: var(--wssf-text-light); font-family: inherit; font-size: .8rem;
+    line-height: 1.5; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    -webkit-tap-highlight-color: transparent; flex-shrink: 0;
+}
+.wssf-filter-clear:hover {
+    background: var(--wssf-chip-bg-hover);
+    color: var(--wssf-text); border-color: var(--wssf-border-focus);
+}
+.wssf-filter-clear:focus-visible {
+    outline: 2px solid var(--wssf-border-focus); outline-offset: 1px;
+}

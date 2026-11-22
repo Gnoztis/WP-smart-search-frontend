@@ -1,0 +1,29 @@
+.wssf-skeleton {
+    background: var(--wssf-card-bg); border: 1px solid var(--wssf-border);
+    border-radius: var(--wssf-radius-lg); padding: 20px 24px; margin-bottom: 24px;
+}
+.wssf-skeleton-title, .wssf-skeleton-line, .wssf-skeleton-card {
+    background: linear-gradient(90deg,
+        var(--wssf-skeleton) 0%,
+        var(--wssf-skeleton-shine) 50%,
+        var(--wssf-skeleton) 100%);
+    background-size: 200% 100%;
+    animation: wssf-skeleton-shimmer 1.4s linear infinite;
+    border-radius: var(--wssf-radius-sm);
+}
+.wssf-skeleton-title { height: 14px; width: 120px; margin-bottom: 20px; }
+.wssf-skeleton-line { height: 12px; margin-bottom: 10px; }
+.wssf-skeleton-line.sm { width: 40%; }
+.wssf-skeleton-line.md { width: 70%; }
+.wssf-skeleton-line.lg { width: 95%; }
+.wssf-skeleton-card {
+    padding: 14px 18px; margin-bottom: 10px;
+    background: var(--wssf-skeleton); animation: none;
+}
+@keyframes wssf-skeleton-shimmer {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .wssf-progress-bar, .wssf-skeleton-title, .wssf-skeleton-line { animation: none; }
+}

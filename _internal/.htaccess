@@ -1,0 +1,21 @@
+# Защита папки _internal от прямого HTTP-доступа.
+# Содержимое этой папки - только для разработчиков и моделей.
+# На nginx .htaccess не работает - добавьте правило из DEV-NOTES.md,
+# раздел 7 "Настройка nginx".
+
+# Основной запрет (Apache 2.4+)
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+
+# Резервный запрет для Apache 2.2
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>
+
+# Дополнительно блокируем любые запросы через rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule .* - [F,L]
+</IfModule>

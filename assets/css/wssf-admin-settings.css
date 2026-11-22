@@ -1,0 +1,178 @@
+.wssf-admin-wrap .wssf-admin-tab-content { margin-top: 16px; }
+
+.wssf-admin-card {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 1px rgba(0,0,0,.03);
+}
+.wssf-admin-card h2 {
+    margin-top: 0;
+    font-size: 16px;
+}
+
+.wssf-admin-wrap .description { color: #50575e; }
+
+/* ---- Diagnostic form ---- */
+.wssf-diag-form {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin: 12px 0 0;
+}
+.wssf-admin-wrap .wssf-diag-input {
+    width: 600px;
+    max-width: 100%;
+    min-height: 66px;
+    padding: 8px 10px;
+    font-family: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    border: 1px solid #8c8f94;
+    border-radius: 4px;
+    box-sizing: border-box;
+    resize: vertical;
+    background-color: #fff !important;
+    color: #1d2327 !important;
+}
+.wssf-admin-wrap .wssf-diag-input:focus {
+    outline: none;
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+}
+
+/* Светлая тема для отчёта диагностики — гарантированно читаемо */
+.wssf-admin-wrap .wssf-diag-report {
+    width: 100%;
+    height: 60vh;
+    min-height: 320px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre;
+    overflow: auto;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    padding: 12px;
+    box-sizing: border-box;
+    background: #f6f7f7 !important;
+    background-color: #f6f7f7 !important;
+    color: #1d2327 !important;
+    caret-color: #1d2327;
+}
+
+/* ---- Stats grid ---- */
+.wssf-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 12px;
+    margin-top: 12px;
+}
+.wssf-stat {
+    background: #f6f7f7;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px 14px;
+}
+.wssf-stat-label {
+    display: block;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    color: #6c7781;
+    margin-bottom: 4px;
+}
+.wssf-stat-value {
+    display: block;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1d2327;
+}
+.wssf-stat-value.is-ok   { color: #2f9e44; }
+.wssf-stat-value.is-warn { color: #d97706; }
+
+/* ---- Progress ---- */
+.wssf-progress-wrap { margin: 14px 0 10px; }
+.wssf-progress-track {
+    width: 100%;
+    height: 14px;
+    background: #e0e0e0;
+    border-radius: 7px;
+    overflow: hidden;
+}
+.wssf-progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #2271b1, #4f94d4);
+    transition: width .2s ease;
+}
+.wssf-progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #50575e;
+    margin-top: 6px;
+}
+
+/* ---- Actions ---- */
+.wssf-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 12px;
+}
+.wssf-actions .spinner {
+    float: none;
+    margin: 0;
+}
+
+/* ---- Errors ---- */
+.wssf-errors {
+    margin-top: 12px;
+    border: 1px solid #f0c0c0;
+    background: #fff5f5;
+    border-radius: 4px;
+    padding: 8px 12px;
+}
+.wssf-errors summary {
+    cursor: pointer;
+    color: #b32d2e;
+    font-weight: 600;
+}
+.wssf-errors pre {
+    margin: 8px 0 0;
+    font-size: 12px;
+    white-space: pre-wrap;
+    color: #3c434a;
+    max-height: 240px;
+    overflow: auto;
+}
+
+/* ---- Help ---- */
+.wssf-help-list {
+    margin: 6px 0 0 16px;
+    list-style: disc;
+}
+.wssf-help-list li { margin-bottom: 4px; }
+
+/* ---- Output для проверок БД ---- */
+.wssf-admin-wrap .wssf-diag-output {
+    margin: 12px 0 0;
+    padding: 12px;
+    max-height: 60vh;
+    min-height: 120px;
+    overflow: auto;
+    white-space: pre;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    background: #f6f7f7 !important;
+    color: #1d2327 !important;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+    box-sizing: border-box;
+}

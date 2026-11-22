@@ -1,0 +1,119 @@
+/* ============================================================
+   «Похожие запросы» — при 0 результатов
+   ============================================================ */
+.wssf-suggestions {
+    margin: 16px 0;
+    padding: 18px 20px;
+    background: var(--wssf-card-bg);
+    border: 1px solid var(--wssf-border);
+    border-radius: var(--wssf-radius-md);
+}
+.wssf-suggestions-title {
+    color: var(--wssf-text);
+    font-weight: 600;
+    margin-bottom: 12px;
+    font-size: .95rem;
+}
+.wssf-suggestions-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.wssf-suggestion {
+    padding: 8px 14px;
+    background: var(--wssf-chip-bg);
+    border: 1px solid var(--wssf-border);
+    border-radius: 1rem;
+    color: var(--wssf-link);
+    font-family: inherit;
+    font-size: .85rem;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    -webkit-tap-highlight-color: transparent;
+    text-align: left;
+}
+.wssf-suggestion:hover {
+    background: var(--wssf-chip-bg-hover);
+    color: var(--wssf-link-hover);
+    border-color: var(--wssf-link);
+}
+.wssf-suggestion:focus-visible {
+    outline: 2px solid var(--wssf-border-focus);
+    outline-offset: 2px;
+}
+
+@media (max-width: 767.98px) {
+    .wssf-suggestions { padding: 14px; }
+    .wssf-suggestion { padding: 9px 12px; font-size: .82rem; }
+}
+
+/* ============================================================
+   «Возможно, вы имели в виду…» — слот сразу под строкой поиска
+   ============================================================ */
+.wssf-did-you-mean-slot {
+    margin: 0;
+    padding: 0;
+}
+.wssf-did-you-mean-slot:empty {
+    display: none;
+}
+
+.wssf-did-you-mean {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    background: rgba(62, 207, 142, .1);
+    border: 1px solid var(--wssf-success);
+    border-radius: var(--wssf-radius-md);
+    font-size: .9rem;
+    color: var(--wssf-text);
+}
+.wssf-did-you-mean-label {
+    color: var(--wssf-text-light);
+}
+.wssf-did-you-mean-btn {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    background: var(--wssf-success);
+    color: #fff;
+    border: 0;
+    border-radius: 1rem;
+    font-family: inherit;
+    font-size: .9rem;
+    font-weight: 600;
+    line-height: 1.4;
+    cursor: pointer;
+    transition: background .15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.wssf-did-you-mean-btn:hover {
+    background: var(--wssf-success-hover);
+    color: #fff;
+}
+.wssf-did-you-mean-btn:focus-visible {
+    outline: 2px solid var(--wssf-border-focus);
+    outline-offset: 2px;
+}
+.wssf-did-you-mean-count {
+    color: var(--wssf-text-light);
+    font-size: .8rem;
+}
+
+@media (max-width: 767.98px) {
+    .wssf-did-you-mean {
+        padding: 10px 12px;
+        font-size: .85rem;
+    }
+    .wssf-did-you-mean-btn {
+        padding: 5px 10px;
+        font-size: .85rem;
+    }
+}

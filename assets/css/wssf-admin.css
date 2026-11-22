@@ -1,0 +1,294 @@
+/* ============================================================
+   WP Smart Search — админ-стили
+   ============================================================ */
+.wssf-admin h1 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.wssf-admin h1 .dashicons {
+    font-size: 26px;
+    width: 26px;
+    height: 26px;
+    color: #2271b1;
+}
+
+.wssf-admin .nav-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+.wssf-admin .nav-tab .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+    margin: 0;
+}
+
+.wssf-admin-tab-content {
+    margin-top: 20px;
+}
+
+/* ---------- Карточки ---------- */
+.wssf-card {
+    max-width: none;
+    padding: 16px 20px 20px;
+    margin-bottom: 20px;
+    background: #fff;
+    border: 1px solid #c3c4c7;
+    border-left: 4px solid #2271b1;
+    border-radius: 4px;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, .04);
+}
+.wssf-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f0f1;
+    font-size: 1.1em;
+}
+.wssf-card h2 .dashicons {
+    color: #2271b1;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    line-height: 1;
+}
+
+/* ---------- Кнопки с иконками ---------- */
+.wssf-card .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+    min-height: 30px;
+}
+.wssf-card .button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+    margin: 0;
+    vertical-align: middle;
+}
+
+/* ---------- Статистика ---------- */
+.wssf-stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    margin: 4px 0 16px;
+}
+.wssf-stat {
+    padding: 12px 14px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+}
+.wssf-stat-label {
+    font-size: 12px;
+    color: #646970;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+    margin-bottom: 6px;
+}
+.wssf-stat-value {
+    font-size: 20px;
+    font-weight: 600;
+    color: #1d2327;
+}
+.wssf-stat-value.ok  { color: #00a32a; }
+.wssf-stat-value.bad { color: #d63638; }
+.wssf-stat-aux {
+    font-size: 13px;
+    font-weight: 400;
+    color: #646970;
+}
+
+/* ---------- Ряды кнопок ---------- */
+.wssf-action-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 20px;
+    align-items: center;
+    margin-top: 12px;
+}
+.wssf-action-row--secondary {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f1;
+}
+.wssf-inline-form {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+.wssf-hint {
+    color: #646970;
+    font-size: 12px;
+}
+
+/* ---------- Прогресс-бар переиндексации ---------- */
+.wssf-reindex-progress {
+    margin-top: 16px;
+    padding: 12px 14px;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
+}
+.wssf-reindex-progress[hidden] { display: none; }
+.wssf-reindex-bar-wrap {
+    height: 8px;
+    background: #dcdcde;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+.wssf-reindex-bar {
+    height: 100%;
+    width: 0;
+    background: linear-gradient(90deg, #2271b1, #72aee6);
+    transition: width .3s ease;
+}
+.wssf-reindex-status {
+    font-size: 13px;
+    color: #3c434a;
+}
+
+/* ---------- Диагностика ---------- */
+.wssf-diag-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+/*
+ * Textarea диагностики.
+ * Не задаём свои цвета — используем дефолтные стили WP,
+ * которые всегда контрастны в любой admin color scheme.
+ * Задаём только шрифт, размер, padding.
+ */
+.wssf-diag-textarea {
+    width: 100%;
+    height: 65vh;
+    margin-top: 8px;
+    padding: 12px;
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre;
+    overflow: auto;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+/* ============================================================
+   Таблица окружения
+   ============================================================ */
+.wssf-env-table {
+    border-collapse: collapse;
+    margin-top: 6px;
+}
+.wssf-env-table th {
+    width: 220px;
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 600;
+    color: #1d2327;
+    background: #f6f7f7;
+    border-bottom: 1px solid #f0f0f1;
+}
+.wssf-env-table td {
+    padding: 8px 12px;
+    color: #1d2327;
+    border-bottom: 1px solid #f0f0f1;
+}
+.wssf-env-table tr:last-child th,
+.wssf-env-table tr:last-child td {
+    border-bottom: 0;
+}
+.wssf-env-table .ok  { color: #00a32a; font-weight: 600; }
+.wssf-env-table .bad { color: #d63638; font-weight: 600; }
+.wssf-env-table code {
+    background: #f0f0f1;
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Обслуживание — все кнопки в одном ряду */
+.wssf-maintenance-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-top: 12px;
+}
+.wssf-maintenance-row .wssf-inline-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+.wssf-maintenance-row .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+    min-height: 30px;
+}
+.wssf-maintenance-row .button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+    margin: 0;
+}
+
+/* Заголовки блоков в «Обслуживании» */
+.wssf-maint-title {
+    margin: 20px 0 6px;
+    font-size: .95rem;
+    font-weight: 600;
+    color: #1d2327;
+    padding-top: 12px;
+    border-top: 1px solid #f0f0f1;
+}
+.wssf-maint-title:first-of-type {
+    margin-top: 12px;
+    padding-top: 0;
+    border-top: 0;
+}
+
+.wssf-maintenance-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin: 8px 0 0;
+}
+.wssf-maintenance-row .wssf-inline-form {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+}
+.wssf-maintenance-row .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    line-height: 1;
+    min-height: 30px;
+}
+.wssf-maintenance-row .button .dashicons {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    line-height: 1;
+    margin: 0;
+}

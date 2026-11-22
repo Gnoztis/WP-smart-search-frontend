@@ -1,0 +1,128 @@
+.wssf-related {
+    margin-top: 16px;
+    padding: 16px 18px;
+    background: var(--wssf-card-bg);
+    border: 1px solid var(--wssf-border);
+    border-radius: var(--wssf-radius-md);
+}
+
+.wssf-related-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .85rem;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--wssf-text-light);
+    margin-bottom: 12px;
+}
+
+.wssf-related-title::before {
+    content: "";
+    width: 3px;
+    height: 14px;
+    background: var(--wssf-primary);
+    border-radius: 2px;
+}
+
+.wssf-related-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.wssf-related-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 6px;
+    background: var(--wssf-chip-bg);
+    border: 1px solid var(--wssf-border);
+    border-radius: 1rem;
+    color: var(--wssf-text);
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: .8rem;
+    line-height: 1.5;
+    cursor: pointer;
+    transition: background .15s, border-color .15s, color .15s;
+    min-width: 0;
+    max-width: 100%;
+    text-align: left;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.wssf-related-chip:hover,
+.wssf-related-chip:focus-visible {
+    background: var(--wssf-chip-bg-hover);
+    border-color: var(--wssf-link);
+    color: var(--wssf-link-hover);
+    outline: none;
+}
+
+.wssf-related-type-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0 6px;
+    height: 18px;
+    border-radius: 9px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    flex-shrink: 0;
+    background: rgba(255, 255, 255, .08);
+    color: var(--wssf-text-light);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.wssf-related-type-cve .wssf-related-type-badge,
+.wssf-related-type-bdu .wssf-related-type-badge,
+.wssf-related-type-attck .wssf-related-type-badge {
+    background: rgba(229, 83, 75, .18);
+    color: #ff8e85;
+}
+
+.wssf-related-type-ipv4 .wssf-related-type-badge,
+.wssf-related-type-ipv6 .wssf-related-type-badge,
+.wssf-related-type-url .wssf-related-type-badge,
+.wssf-related-type-domain .wssf-related-type-badge {
+    background: rgba(50, 118, 255, .18);
+    color: #8ac0f5;
+}
+
+.wssf-related-type-sha256 .wssf-related-type-badge,
+.wssf-related-type-sha1 .wssf-related-type-badge,
+.wssf-related-type-sha512 .wssf-related-type-badge,
+.wssf-related-type-md5 .wssf-related-type-badge {
+    background: rgba(62, 207, 142, .18);
+    color: #3ecf8e;
+}
+
+.wssf-related-type-yara .wssf-related-type-badge,
+.wssf-related-type-yaratag .wssf-related-type-badge {
+    background: rgba(219, 166, 23, .18);
+    color: #dba617;
+}
+
+.wssf-related-value {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    min-width: 0;
+    color: var(--wssf-link);
+}
+
+.wssf-related-count {
+    flex-shrink: 0;
+    padding: 0 6px;
+    font-size: 11px;
+    color: var(--wssf-text-lighter);
+    background: rgba(255, 255, 255, .04);
+    border-radius: 8px;
+    line-height: 1.5;
+}
+
+@media (max-width: 767.98px) {
+    .wssf-related { padding: 14px; }
+    .wssf-related-chip { font-size: .82rem; padding: 6px 10px 6px 6px; }
+    .wssf-related-type-badge { font-size: 9px; height: 16px; }
+}

@@ -1,0 +1,28 @@
+.wssf-pagination {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 6px; width: 100%; margin-top: 18px; padding-top: 18px;
+    border-top: 1px solid var(--wssf-border);
+}
+.wssf-page {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 36px; height: 36px; padding: 0 10px;
+    background: var(--wssf-card-bg); border: 1px solid var(--wssf-border);
+    border-radius: var(--wssf-radius-sm);
+    color: var(--wssf-link); font-family: inherit; font-size: .9rem;
+    line-height: 1; cursor: pointer; flex-shrink: 0;
+    transition: background .15s, border-color .15s, color .15s;
+    -webkit-tap-highlight-color: transparent;
+}
+.wssf-page:hover {
+    background: var(--wssf-chip-bg-hover);
+    color: var(--wssf-link-hover); border-color: var(--wssf-border-focus);
+}
+.wssf-page.active {
+    background: var(--wssf-primary); color: #fff;
+    border-color: var(--wssf-primary); cursor: default;
+}
+.wssf-page.disabled { opacity: .4; cursor: not-allowed; pointer-events: none; }
+.wssf-page-gap {
+    color: var(--wssf-text-lighter); padding: 0 4px;
+    user-select: none; flex-shrink: 0;
+}

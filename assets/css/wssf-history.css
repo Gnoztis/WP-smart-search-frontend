@@ -1,0 +1,98 @@
+/* ============================================================
+   История поиска — выпадающий список под полем ввода
+   ============================================================ */
+.wssf-history {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 4px);
+    z-index: 60;
+    background: var(--wssf-card-bg);
+    border: 1px solid var(--wssf-border);
+    border-radius: var(--wssf-radius-md);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .35);
+    max-height: 340px;
+    overflow-y: auto;
+    display: none;
+}
+.wssf-history.is-open { display: block; }
+.wssf-history[hidden] { display: none !important; }
+
+.wssf-history-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--wssf-border);
+    position: sticky;
+    top: 0;
+    background: var(--wssf-card-bg);
+    z-index: 1;
+}
+.wssf-history-title {
+    font-size: .8rem;
+    color: var(--wssf-text-light);
+    text-transform: uppercase;
+    letter-spacing: .3px;
+}
+.wssf-history-clear {
+    background: transparent;
+    border: 0;
+    color: var(--wssf-text-light);
+    font-size: .75rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: var(--wssf-radius-sm);
+}
+.wssf-history-clear:hover { color: var(--wssf-error); background: var(--wssf-chip-bg-hover); }
+
+.wssf-history-list { list-style: none; margin: 0; padding: 0; }
+
+.wssf-history-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: .9rem;
+    color: var(--wssf-text);
+    border-bottom: 1px solid transparent;
+    transition: background .12s, border-color .12s;
+}
+.wssf-history-item:hover,
+.wssf-history-item:focus {
+    background: var(--wssf-chip-bg-hover);
+    outline: none;
+    border-bottom-color: var(--wssf-border);
+}
+.wssf-history-q {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.wssf-history-q i { color: var(--wssf-text-lighter); font-style: italic; }
+.wssf-history-meta {
+    font-size: .7rem;
+    color: var(--wssf-text-lighter);
+    flex-shrink: 0;
+}
+.wssf-history-remove {
+    background: transparent;
+    border: 0;
+    color: var(--wssf-text-lighter);
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0 6px;
+    border-radius: var(--wssf-radius-sm);
+    flex-shrink: 0;
+}
+.wssf-history-remove:hover { color: var(--wssf-error); }
+
+@media (max-width: 767.98px) {
+    .wssf-history { max-height: 45vh; }
+    .wssf-history-item { padding: 10px 14px; font-size: .95rem; }
+    .wssf-history-remove { padding: 0 8px; font-size: 1.2rem; }
+}

@@ -1,0 +1,89 @@
+/* ============================================================
+   Метки — блок результатов
+   ============================================================ */
+.wssf-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.wssf-tag {
+    display: inline-flex; align-items: stretch;
+    background: var(--wssf-chip-bg); border: 1px solid var(--wssf-border);
+    border-radius: 1rem; overflow: hidden; min-width: 0;
+    transition: border-color .15s, background .15s, box-shadow .15s;
+}
+.wssf-tag:hover { border-color: var(--wssf-link); }
+.wssf-tag-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; color: var(--wssf-link); text-decoration: none;
+    font-size: .85rem; line-height: 1.5; min-width: 0;
+    transition: background .15s, color .15s;
+}
+.wssf-tag-link:hover { background: var(--wssf-chip-bg-hover); color: var(--wssf-link-hover); }
+.wssf-tag-name { overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
+.wssf-tag-count {
+    background: rgba(255,255,255,.1); padding: 1px 7px;
+    border-radius: 10px; font-size: 11px; flex-shrink: 0;
+}
+
+/* Кнопки на чипе: лупа, +, − */
+.wssf-tag-search,
+.wssf-tag-include,
+.wssf-tag-exclude {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 32px; height: 32px; padding: 0 8px;
+    background: transparent; border: 0;
+    border-left: 1px solid var(--wssf-border);
+    color: var(--wssf-text-light);
+    font-family: inherit; font-size: 16px; font-weight: 700;
+    line-height: 1; cursor: pointer;
+    transition: background .15s, color .15s, border-color .15s;
+    -webkit-tap-highlight-color: transparent;
+    flex-shrink: 0;
+}
+.wssf-tag-search:hover,
+.wssf-tag-include:hover,
+.wssf-tag-exclude:hover {
+    background: var(--wssf-chip-bg-hover); color: var(--wssf-text);
+}
+.wssf-tag-search:focus-visible,
+.wssf-tag-include:focus-visible,
+.wssf-tag-exclude:focus-visible {
+    outline: 2px solid var(--wssf-border-focus); outline-offset: -2px;
+}
+.wssf-tag-search svg { width: 14px; height: 14px; display: block; flex-shrink: 0; }
+
+/* Точное совпадение с запросом — первый в списке, визуальное выделение */
+.wssf-tag--exact {
+    border-color: var(--wssf-primary);
+    box-shadow: 0 0 0 1px var(--wssf-primary);
+}
+.wssf-tag--exact .wssf-tag-link {
+    font-weight: 700;
+}
+
+/* Include-active (зелёный) */
+.wssf-tag--included { border-color: var(--wssf-success); background: rgba(62,207,142,.12); }
+.wssf-tag--included .wssf-tag-include {
+    background: var(--wssf-success); color: #fff;
+    border-left-color: var(--wssf-success);
+}
+.wssf-tag--included .wssf-tag-include:hover {
+    background: var(--wssf-success-hover); color: #fff;
+}
+.wssf-tag--included .wssf-tag-link { color: var(--wssf-link-hover); }
+
+/* Exclude-active (красный) */
+.wssf-tag--excluded { border-color: var(--wssf-error); background: rgba(229,83,75,.12); }
+.wssf-tag--excluded .wssf-tag-exclude {
+    background: var(--wssf-error); color: #fff;
+    border-left-color: var(--wssf-error);
+}
+.wssf-tag--excluded .wssf-tag-exclude:hover {
+    background: #c4463e; color: #fff;
+}
+.wssf-tag--excluded .wssf-tag-link {
+    color: var(--wssf-text-lighter);
+    text-decoration: line-through;
+}
+
+/* Если тег одновременно и exact, и included/excluded —
+   выигрывает include/exclude по цвету, exact добавляет только «вес» */
+.wssf-tag--exact.wssf-tag--included { box-shadow: 0 0 0 1px var(--wssf-success); }
+.wssf-tag--exact.wssf-tag--excluded { box-shadow: 0 0 0 1px var(--wssf-error); }

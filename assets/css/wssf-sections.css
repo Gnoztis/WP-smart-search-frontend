@@ -1,0 +1,17 @@
+.wssf-section {
+    background: var(--wssf-card-bg); border: 1px solid var(--wssf-border);
+    border-radius: var(--wssf-radius-lg); padding: 20px 24px;
+    margin-bottom: 24px; width: 100%; transition: box-shadow .15s;
+}
+.wssf-section-title {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: .85rem; text-transform: uppercase; letter-spacing: .5px;
+    color: var(--wssf-text-light);
+    margin: 0 0 16px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--wssf-border);
+}
+.wssf-count {
+    background: var(--wssf-primary); color: #fff;
+    border-radius: 1rem; font-size: 11px; font-weight: 600;
+    padding: 2px 8px; letter-spacing: 0; flex-shrink: 0;
+}

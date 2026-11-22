@@ -1,0 +1,16 @@
+.wssf-progress {
+    height: 3px; width: 100%; background: var(--wssf-chip-bg);
+    border-radius: var(--wssf-radius-sm); overflow: hidden;
+    margin-bottom: 14px; opacity: 0; transition: opacity .25s;
+}
+.wssf-progress.active { opacity: 1; }
+.wssf-progress-bar {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--wssf-primary), var(--wssf-link), var(--wssf-primary));
+    background-size: 200% 100%; transition: width .3s;
+    animation: wssf-shimmer 1.4s linear infinite;
+}
+@keyframes wssf-shimmer {
+    0%   { background-position: 0 0; }
+    100% { background-position: 200% 0; }
+}

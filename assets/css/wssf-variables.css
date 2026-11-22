@@ -1,0 +1,24 @@
+:root {
+    --wssf-primary:        var(--wpsc-primary-color, #3276ff);
+    --wssf-primary-hover:  #2559c9;
+    --wssf-success:        #3ecf8e;
+    --wssf-success-hover:  #2eaf74;
+    --wssf-bg:             var(--wpsc-body-bg, #131314);
+    --wssf-card-bg:        var(--wpsc-white-bg, #1b1a26);
+    --wssf-chip-bg:        var(--wpsc-light-bg, #232136);
+    --wssf-chip-bg-hover:  var(--wpsc-highlight-color, #3c3b54);
+    --wssf-border:         var(--wpsc-border-color, rgba(255,255,255,.2));
+    --wssf-border-focus:   var(--wpsc-border-focus-color, rgba(255,255,255,.7));
+    --wssf-text:           var(--wpsc-text-color, #e3e3e3);
+    --wssf-text-light:     var(--wpsc-text-light-color, rgba(222,222,222,.6));
+    --wssf-text-lighter:   var(--wpsc-text-lighter-color, rgba(222,222,222,.3));
+    --wssf-link:           var(--wpsc-link-color, #8ac0f5);
+    --wssf-link-hover:     var(--wpsc-link-hover-color, #fff);
+    --wssf-radius-lg:      var(--wpsc-box-border-radius, 1rem);
+    --wssf-radius-md:      var(--wpsc-element-border-radius, .5rem);
+    --wssf-radius-sm:      .25rem;
+    --wssf-skeleton:       #232136;
+    --wssf-skeleton-shine: #2c2a42;
+    --wssf-error:          #e5534b;
+    --wssf-error-shadow:   rgba(229,83,75,.2);
+}

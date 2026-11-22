@@ -1,0 +1,22 @@
+# Защита служебных файлов плагина от прямого HTTP-доступа.
+
+<FilesMatch "\.(md|txt|log|sh|bak|swp|ini|lock|dist)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Защита служебных директорий
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^\.(git|idea|vscode|env) - [F,L]
+</IfModule>
+
+# Внутренняя папка — полный запрет (дублирует _internal/.htaccess)
+<IfModule mod_rewrite.c>
+    RewriteRule ^_internal/ - [F,L]
+</IfModule>
