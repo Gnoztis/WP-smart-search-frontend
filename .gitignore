@@ -1,0 +1,25 @@
+# Dependencies and local tooling (never part of the plugin).
+node_modules/
+vendor/
+composer.lock
+package-lock.json
+pnpm-lock.yaml
+
+# Editor and OS noise.
+.idea/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local artefacts: logs, archives, backups, test dumps.
+*.log
+*.zip
+*.tar.gz
+*.bak
+*.orig
+*.rej
+*.sql
+*.dump

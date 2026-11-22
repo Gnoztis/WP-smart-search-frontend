@@ -2,19 +2,44 @@
 declare(strict_types=1);
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
+/**
+ * Request validation for the public search surface.
+ *
+ * Two independent layers protect the AJAX endpoints:
+ *
+ *  1. Nonce — CSRF only. A guest nonce is printed on the public search page
+ *     and is therefore available to anyone who loads it; it is not a
+ *     capability and it must not be treated as one. It only proves that the
+ *     request was assembled by a page of this site, and it can be replayed
+ *     for the life of the nonce (12–24 h).
+ *  2. Rate limiter — the actual abuse control: 30 requests/minute per guest
+ *     IP, 300/minute per logged-in user. The counter is kept in Redis when it
+ *     is available and in a TTL-bounded transient otherwise.
+ *
+ * The client IP is taken from REMOTE_ADDR. Forwarding headers are read only
+ * when REMOTE_ADDR is listed in the `wssf_trusted_proxies` filter, and then
+ * the chain is walked from the right, so a value the client put into
+ * X-Forwarded-For itself is never trusted.
+ */
 final class WSSF_Security {
 
     private const RATE_LIMIT_GUEST  = 30;
     private const RATE_LIMIT_USER   = 300;
     private const RATE_LIMIT_WINDOW = 60;
 
+    /**
+     * Bucket for requests whose client IP cannot be determined. Sharing one
+     * bucket keeps the limiter closed instead of switching it off: a request
+     * without a usable REMOTE_ADDR must not be an unlimited request.
+     */
+    private const UNKNOWN_CLIENT_KEY = 'wssf_rl_unknown';
+
     public function __construct( private WSSF_Cache $cache ) {}
 
     public function verify_request(): bool {
-        $xrw = isset( $_SERVER['HTTP_X_REQUESTED_WITH'] )
-            ? strtolower( sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REQUESTED_WITH'] ) ) ) : '';
+        $xrw = strtolower( $this->server_string( 'HTTP_X_REQUESTED_WITH' ) );
 
-        $nonce = isset( $_POST[ WSSF_Plugin::NONCE_FIELD ] )
+        $nonce = isset( $_POST[ WSSF_Plugin::NONCE_FIELD ] ) && is_string( $_POST[ WSSF_Plugin::NONCE_FIELD ] )
             ? sanitize_text_field( wp_unslash( $_POST[ WSSF_Plugin::NONCE_FIELD ] ) ) : '';
 
         if ( $xrw === 'xmlhttprequest' ) {
@@ -24,23 +49,28 @@ final class WSSF_Security {
             $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
             if ( ! $site_host ) { return false; }
 
-            $source = '';
-            if ( ! empty( $_SERVER['HTTP_ORIGIN'] ) ) {
-                $source = sanitize_text_field( wp_unslash( $_SERVER['HTTP_ORIGIN'] ) );
-            } elseif ( ! empty( $_SERVER['HTTP_REFERER'] ) ) {
-                $source = sanitize_text_field( wp_unslash( $_SERVER['HTTP_REFERER'] ) );
-            }
+            $source = $this->server_string( 'HTTP_ORIGIN' );
+            if ( $source === '' ) { $source = $this->server_string( 'HTTP_REFERER' ); }
             if ( $source === '' ) { return false; }
 
             $source_host = wp_parse_url( $source, PHP_URL_HOST );
             if ( ! $source_host ) { return false; }
 
-            $site_host   = preg_replace( '/^www\./i', '', $site_host );
-            $source_host = preg_replace( '/^www\./i', '', $source_host );
+            $site_host   = (string) preg_replace( '/^www\./i', '', $site_host );
+            $source_host = (string) preg_replace( '/^www\./i', '', $source_host );
             return strcasecmp( $site_host, $source_host ) === 0;
         }
 
         return $nonce !== '' && (bool) wp_verify_nonce( $nonce, WSSF_Plugin::NONCE_ACTION );
+    }
+
+    /**
+     * A $_SERVER value as a sanitized string; empty when absent or not scalar.
+     */
+    private function server_string( string $key ): string {
+        if ( ! isset( $_SERVER[ $key ] ) ) { return ''; }
+        $raw = wp_unslash( $_SERVER[ $key ] );
+        return is_string( $raw ) ? sanitize_text_field( $raw ) : '';
     }
 
     public function rate_limit_ok(): bool {
@@ -52,72 +82,85 @@ final class WSSF_Security {
     }
 
     /**
-     * Атомарный инкремент счётчика.
-     *  - Объектный кеш (Redis/Memcached) → wp_cache_incr.
-     *  - Fallback → атомарный INSERT … ON DUPLICATE KEY UPDATE в wp_options.
-     * Это устраняет гонку get→set при параллельных запросах (аудит №19).
+     * Increments the request counter and returns the new value.
+     *
+     * Redis is used when the cache backend is up (atomic INCR + EXPIRE), so
+     * parallel requests cannot lose increments. Without Redis the counter is
+     * a transient with a real TTL.
+     *
+     * The previous implementation kept the counter in a wp_options row and
+     * reset it with `IF ( value < time() + window … )` — the value could never
+     * reach that bound, so a guest stayed blocked forever after 30 requests
+     * and every counted IP left a permanent row behind.
      */
     private function rate_limit_incr( string $key, int $window ): int {
-        if ( wp_using_ext_object_cache() ) {
-            $group = 'wssf_rate_limit';
-            $count = wp_cache_incr( $key, 1, $group );
-            if ( false === $count ) {
-                wp_cache_set( $key, 1, $group, $window );
-                $count = 1;
-            }
-            return (int) $count;
-        }
+        $window = max( 1, $window );
 
-        global $wpdb;
-        $option_name = '_wssf_rl_' . md5( $key );
-        $expires     = time() + $window;
+        $count = $this->cache->rate_incr( $key, $window );
+        if ( $count !== null ) { return $count; }
 
-        $wpdb->query( $wpdb->prepare(
-            "INSERT INTO {$wpdb->options} (option_name, option_value, autoload)
-             VALUES (%s, 1, 'no')
-             ON DUPLICATE KEY UPDATE
-                option_value = IF( CAST(option_value AS UNSIGNED) < %d, CAST(option_value AS UNSIGNED) + 1, 1 )",
-            $option_name,
-            $expires
-        ) );
+        $transient = 'wssf_rl_' . md5( $key );
+        $count     = (int) get_transient( $transient );
+        $count++;
+        set_transient( $transient, $count, $window );
 
-        $value = $wpdb->get_var( $wpdb->prepare(
-            "SELECT option_value FROM {$wpdb->options} WHERE option_name = %s",
-            $option_name
-        ) );
-
-        return (int) $value;
+        return $count;
     }
 
     public function get_client_ip(): string {
-        $remote_addr = isset( $_SERVER['REMOTE_ADDR'] )
-            ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) )
-            : '';
+        $remote_addr = $this->server_string( 'REMOTE_ADDR' );
 
         if ( ! filter_var( $remote_addr, FILTER_VALIDATE_IP ) ) {
             return '';
         }
 
-        $trusted_proxies = (array) apply_filters( 'wssf_trusted_proxies', [] );
+        $trusted_proxies = $this->trusted_proxies();
 
         if ( in_array( $remote_addr, $trusted_proxies, true ) ) {
-            if ( ! empty( $_SERVER['HTTP_X_REAL_IP'] ) ) {
-                $real_ip = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) );
-                if ( filter_var( $real_ip, FILTER_VALIDATE_IP ) ) {
-                    return $this->normalize_ip( $real_ip );
-                }
+            $real_ip = trim( $this->server_string( 'HTTP_X_REAL_IP' ) );
+            if ( filter_var( $real_ip, FILTER_VALIDATE_IP ) ) {
+                return $this->normalize_ip( $real_ip );
             }
-            if ( ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-                $raw = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) );
-                $parts = explode( ',', $raw );
-                $first = trim( $parts[0] );
-                if ( filter_var( $first, FILTER_VALIDATE_IP ) ) {
-                    return $this->normalize_ip( $first );
+
+            $forwarded = $this->server_string( 'HTTP_X_FORWARDED_FOR' );
+            if ( $forwarded !== '' ) {
+                $parts = array_reverse( explode( ',', $forwarded ) );
+                foreach ( $parts as $candidate ) {
+                    $candidate = trim( $candidate );
+                    if ( ! filter_var( $candidate, FILTER_VALIDATE_IP ) ) { continue; }
+                    // Skip the trusted proxies of our own chain: the first
+                    // non-proxy hop from the right is the real client. The
+                    // left-most entry is whatever the client sent.
+                    if ( in_array( $candidate, $trusted_proxies, true ) ) { continue; }
+                    return $this->normalize_ip( $candidate );
                 }
             }
         }
 
         return $this->normalize_ip( $remote_addr );
+    }
+
+    /**
+     * Proxies whose forwarding headers may be believed.
+     *
+     * Empty by default: a site that is not behind a reverse proxy must never
+     * trust X-Forwarded-For / X-Real-IP, otherwise any visitor could pick its
+     * own rate-limit bucket by sending the header.
+     *
+     * @return string[]
+     */
+    private function trusted_proxies(): array {
+        $list = (array) apply_filters( 'wssf_trusted_proxies', [] );
+
+        $out = [];
+        foreach ( $list as $proxy ) {
+            if ( ! is_string( $proxy ) ) { continue; }
+            $proxy = trim( $proxy );
+            if ( $proxy === '' || ! filter_var( $proxy, FILTER_VALIDATE_IP ) ) { continue; }
+            $out[] = $proxy;
+        }
+
+        return $out;
     }
 
     private function normalize_ip( string $ip ): string {
@@ -126,20 +169,27 @@ final class WSSF_Security {
             if ( $packed !== false ) {
                 $hex = bin2hex( $packed );
                 $hex = substr( $hex, 0, 16 ) . str_repeat( '0', 16 );
-                $normalized = @inet_ntop( hex2bin( $hex ) );
-                if ( $normalized !== false ) { return $normalized; }
+                $normalized = @inet_ntop( (string) hex2bin( $hex ) );
+                if ( is_string( $normalized ) ) { return $normalized; }
             }
         }
         return $ip;
     }
 
+    /**
+     * @return array{0:string,1:int} Counter key and its limit.
+     */
     private function rate_limit_key_and_max(): array {
         $user_id = get_current_user_id();
         if ( $user_id > 0 ) {
             return [ 'wssf_rl_u_' . $user_id, self::RATE_LIMIT_USER ];
         }
+
         $ip = $this->get_client_ip();
-        if ( $ip === '' ) { return [ '', 0 ]; }
+        if ( $ip === '' ) {
+            return [ self::UNKNOWN_CLIENT_KEY, self::RATE_LIMIT_GUEST ];
+        }
+
         return [ 'wssf_rl_ip_' . md5( $ip ), self::RATE_LIMIT_GUEST ];
     }
 }

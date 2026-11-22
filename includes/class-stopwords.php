@@ -134,7 +134,7 @@ final class WSSF_Stopwords {
 
         try {
             if ( $lang === '' ) {
-                $wpdb->query( "TRUNCATE TABLE `{$table}`" );
+                $wpdb->query( "TRUNCATE TABLE `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
             } else {
                 $lang = $this->normalize_lang( $lang );
                 $wpdb->query( $wpdb->prepare( "DELETE FROM `{$table}` WHERE lang = %s", $lang ) );

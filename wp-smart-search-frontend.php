@@ -1,19 +1,25 @@
 <?php
 /**
  * Plugin Name: WP Smart Search (Frontend)
+ * Plugin URI: https://github.com/Gnoztis/WP-smart-search-frontend
  * Description: AJAX-поиск с фасетными фильтрами, локальным расширением запроса и поддержкой IOC.
- * Version: 5.3.0
- * Requires at least: 6.0
+ * Version: 5.4.0
+ * Author: Gnostis
+ * Author URI: https://github.com/Gnoztis
+ * Requires at least: 7.0
+ * Tested up to: 7.1
  * Requires PHP: 8.0
  * License: GPL-2.0-or-later
  * Text Domain: wp-smart-search-frontend
+ * Update URI: https://github.com/Gnoztis/WP-smart-search-frontend
  */
 
 declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'WSSF_VERSION', '5.3.0' );
+define( 'WSSF_VERSION', '5.4.0' );
+define( 'WSSF_PLUGIN_FILE', __FILE__ );
 define( 'WSSF_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WSSF_URL',  plugin_dir_url( __FILE__ ) );
 
@@ -50,11 +56,15 @@ require_once WSSF_PATH . 'includes/class-migrations.php';
 
 require_once WSSF_PATH . 'includes/class-hooks.php';
 require_once WSSF_PATH . 'includes/class-plugin.php';
+require_once WSSF_PATH . 'includes/class-wssf-github-updater.php';
 
 require_once WSSF_PATH . 'admin/class-admin-settings.php';
 require_once WSSF_PATH . 'admin/class-admin-actions.php';
 
 WSSF_Plugin::instance();
+
+// Updates from GitHub through the native WordPress mechanism.
+( new WSSF_GitHub_Updater() )->register_hooks();
 
 register_activation_hook( __FILE__, function () {
     $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );

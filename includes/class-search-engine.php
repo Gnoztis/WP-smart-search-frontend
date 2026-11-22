@@ -19,6 +19,9 @@ final class WSSF_Search_Engine {
 
     private static ?array $cached_post_types = null;
 
+    /** Index availability/count, memoized for the request (see index_state()). */
+    private static ?array $index_state = null;
+
     private WSSF_Rank_Fusion $fusion;
 
     public static function get_post_types(): array {
@@ -70,26 +73,43 @@ final class WSSF_Search_Engine {
     }
 
     private function is_index_available(): bool {
+        $state = $this->index_state();
+        return $state !== null && $state['exists'] && $state['count'] > 0;
+    }
+
+    /**
+     * Whether the index table exists and how many rows it holds.
+     *
+     * Memoized for the request only: since 5.4 the cache has no transient
+     * fallback, and a persistent copy of this state without Redis would be a
+     * cache in wp_options — exactly what the backend was cleaned of. The probe
+     * is two cheap queries (SHOW TABLES + COUNT on a table with a primary
+     * key); it runs once per request instead of once per search call.
+     *
+     * @return array{exists:bool,count:int}|null
+     */
+    private function index_state(): ?array {
+        if ( self::$index_state !== null ) {
+            return self::$index_state;
+        }
+
         global $wpdb;
         $table = $this->get_index_table();
-        if ( $table === null ) { return false; }
-        $cached = $this->cache->get( 'wssf_index_exists' );
-        if ( is_array( $cached ) && array_key_exists( 'val', $cached ) ) {
-            $exists = (bool) $cached['val'];
-        } else {
-            try { $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table; }
-            catch ( \Throwable $e ) { $exists = false; }
-            $this->cache->set( 'wssf_index_exists', [ 'val' => $exists ], HOUR_IN_SECONDS );
+        if ( $table === null ) { return null; }
+
+        $exists = false;
+        try { $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table; }
+        catch ( \Throwable $e ) { $exists = false; }
+
+        $count = 0;
+        if ( $exists ) {
+            try { $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
+            catch ( \Throwable $e ) { $count = 0; }
         }
-        if ( ! $exists ) { return false; }
-        $count_cached = $this->cache->get( 'wssf_index_count' );
-        if ( is_array( $count_cached ) && array_key_exists( 'val', $count_cached ) ) {
-            return (int) $count_cached['val'] > 0;
-        }
-        try { $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); }
-        catch ( \Throwable $e ) { $count = 0; }
-        $this->cache->set( 'wssf_index_count', [ 'val' => $count ], HOUR_IN_SECONDS );
-        return $count > 0;
+
+        self::$index_state = [ 'exists' => $exists, 'count' => $count ];
+
+        return self::$index_state;
     }
 
     private function semantic_active(): bool {
@@ -650,12 +670,8 @@ final class WSSF_Search_Engine {
         $table = $this->get_index_table();
         if ( $table === null ) { return []; }
 
-        $count_cached = $this->cache->get( 'wssf_index_count' );
-        $total = is_array( $count_cached ) ? (int) ( $count_cached['val'] ?? 0 ) : 0;
-        if ( $total <= 0 ) {
-            try { $total = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); }
-            catch ( \Throwable $e ) { $total = 0; }
-        }
+        $state = $this->index_state();
+        $total = $state !== null ? (int) $state['count'] : 0;
         if ( $total <= 0 ) { $total = 100; }
 
         $out = [];

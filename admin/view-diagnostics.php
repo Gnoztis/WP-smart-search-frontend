@@ -49,6 +49,20 @@ $diag_enabled = (bool) $env['diag_enabled'];
                 </td>
             </tr>
             <tr>
+                <th><?php esc_html_e( 'Кэш результатов', 'wp-smart-search-frontend' ); ?></th>
+                <td>
+                    <span class="<?php echo esc_attr( $env['cache_backend'] === 'redis' ? 'ok' : 'bad' ); ?>">
+                        <code><?php echo esc_html( (string) $env['cache_backend'] ); ?></code>
+                    </span>
+                    <?php if ( (int) $env['cache_backoff'] > 0 ) : ?>
+                        · <?php esc_html_e( 'Redis не отвечает, повтор через', 'wp-smart-search-frontend' ); ?>
+                        <?php echo (int) $env['cache_backoff']; ?> <?php esc_html_e( 'с', 'wp-smart-search-frontend' ); ?>
+                    <?php elseif ( $env['cache_backend'] === 'none' ) : ?>
+                        · <?php esc_html_e( 'кэширования нет, поиск работает напрямую', 'wp-smart-search-frontend' ); ?>
+                    <?php endif; ?>
+                </td>
+            </tr>
+            <tr>
                 <th><?php esc_html_e( 'Redis (сервер)', 'wp-smart-search-frontend' ); ?></th>
                 <td>
                     <?php if ( ! empty( $env['redis_server_version'] ) ) : ?>
@@ -87,6 +101,14 @@ $diag_enabled = (bool) $env['diag_enabled'];
                 <th><?php esc_html_e( 'CleanTalk', 'wp-smart-search-frontend' ); ?></th>
                 <td>
                     <?php echo esc_html( $env['cleantalk_active'] ); ?>
+                    · <?php esc_html_e( 'режим:', 'wp-smart-search-frontend' ); ?>
+                    <code><?php echo esc_html( (string) $env['cleantalk_mode'] ); ?></code>
+                    · <?php esc_html_e( 'проверка:', 'wp-smart-search-frontend' ); ?>
+                    <span class="<?php echo esc_attr( $env['cleantalk_effective'] === 'yes' ? 'ok' : 'bad' ); ?>">
+                        <?php echo esc_html( $env['cleantalk_effective'] === 'yes'
+                            ? __( 'выполняется', 'wp-smart-search-frontend' )
+                            : __( 'не выполняется', 'wp-smart-search-frontend' ) ); ?>
+                    </span>
                     <?php if ( $env['cleantalk_active'] === 'yes' ) : ?>
                         · <?php esc_html_e( 'key_is_ok:', 'wp-smart-search-frontend' ); ?>
                         <span class="<?php echo $env['cleantalk_key_ok'] === 'yes' ? 'ok' : 'bad'; ?>">

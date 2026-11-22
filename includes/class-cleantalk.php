@@ -4,6 +4,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 final class WSSF_CleanTalk {
 
+    /** Detection result of the current request; see is_available(). */
+    private static ?bool $available = null;
+
     private const CT_VERDICT_TTL_GUEST = 60;
     private const CT_VERDICT_TTL_USER  = 3600;
 
@@ -25,11 +28,95 @@ final class WSSF_CleanTalk {
     ) {}
 
     /* ============================================================
+     *  Optional integration
+     * ============================================================ */
+
+    /**
+     * Whether CleanTalk is actually installed on this site.
+     *
+     * Detected once per request. Nothing in the plugin calls an apbct_*
+     * function without this check, so a site without CleanTalk runs the
+     * search normally. The filter exists for stands and for tests:
+     *
+     *     add_filter( 'wssf_cleantalk_available', '__return_true' );
+     */
+    public static function is_available(): bool {
+        if ( self::$available !== null ) {
+            return self::$available;
+        }
+
+        $available = function_exists( 'apbct_base_call' ) || function_exists( 'ct_add_hidden_fields' );
+
+        self::$available = (bool) apply_filters( 'wssf_cleantalk_available', $available );
+
+        return self::$available;
+    }
+
+    /**
+     * Configured mode: auto | on | off.
+     *
+     * - auto: the check runs only when CleanTalk is present;
+     * - on:   forced, but still does nothing when CleanTalk is absent;
+     * - off:  never runs, even when CleanTalk is present.
+     */
+    public static function is_enabled(): bool {
+        $mode = class_exists( 'WSSF_Admin_Settings' )
+            ? WSSF_Admin_Settings::get_cleantalk_mode()
+            : 'auto';
+
+        if ( $mode === 'off' ) { return false; }
+        if ( $mode === 'on' ) { return true; }
+
+        return self::is_available();
+    }
+
+    /**
+     * The check really runs: the mode allows it and the plugin is there.
+     */
+    public static function active(): bool {
+        return self::is_enabled() && self::is_available();
+    }
+
+    /**
+     * Human-readable integration state for the admin screen.
+     *
+     * @return array{mode:string,available:bool,effective:bool}
+     */
+    public static function state(): array {
+        return [
+            'mode'      => class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_cleantalk_mode() : 'auto',
+            'available' => self::is_available(),
+            'effective' => self::active(),
+        ];
+    }
+
+    /**
+     * Hidden fields of the CleanTalk JS check, ready for output.
+     *
+     * Empty when the integration is not active, so a site without CleanTalk
+     * never sees ct_* markup in its search form.
+     */
+    public static function form_fields(): string {
+        if ( ! self::active() || ! function_exists( 'ct_add_hidden_fields' ) ) {
+            return '';
+        }
+
+        try {
+            $fields = ct_add_hidden_fields( 'ct_checkjs_search_default', true );
+        } catch ( \Throwable $e ) {
+            return '';
+        }
+
+        return is_string( $fields ) ? $fields : '';
+    }
+
+    /* ============================================================
      *  GET-проверка (при загрузке страницы поиска)
      * ============================================================ */
 
     public function check_search_get_request(): void {
-        if ( ! function_exists( 'apbct_base_call' ) ) { return; }
+        if ( ! self::active() ) { return; }
+        if ( ! $this->has_usable_client() ) { return; }
         if ( empty( $_GET['s'] ) || ! is_string( $_GET['s'] ) ) { return; }
         $search_query = sanitize_text_field( wp_unslash( $_GET['s'] ) );
         if ( mb_strlen( $search_query ) < WSSF_Query_Parser::MIN_LEN ) { return; }
@@ -137,10 +224,11 @@ final class WSSF_CleanTalk {
     }
 
     public function add_fields_to_search_form( $form ) {
-        if ( ! function_exists( 'ct_add_hidden_fields' ) ) { return $form; }
+        if ( ! self::active() || ! function_exists( 'ct_add_hidden_fields' ) ) { return $form; }
+        if ( ! is_string( $form ) ) { return $form; }
         if ( strpos( $form, 'ct_checkjs_search_default' ) !== false ) { return $form; }
-        $fields = ct_add_hidden_fields( 'ct_checkjs_search_default', true );
-        if ( ! empty( $fields ) ) {
+        $fields = self::form_fields();
+        if ( $fields !== '' ) {
             $form = str_replace( '</form>', $fields . '</form>', $form );
         }
         return $form;
@@ -153,7 +241,8 @@ final class WSSF_CleanTalk {
     public function check_ajax( string $raw, array $context = [] ): array {
         $result = [ 'blocked' => false, 'message' => '', 'debug' => [] ];
 
-        if ( ! function_exists( 'apbct_base_call' ) ) { return $result; }
+        if ( ! self::active() ) { return $result; }
+        if ( ! $this->has_usable_client() ) { return $result; }
         $skip_logged = (bool) apply_filters( 'wssf_cleantalk_skip_for_logged_in', false );
         if ( $skip_logged && is_user_logged_in() ) { return $result; }
 
@@ -367,22 +456,36 @@ final class WSSF_CleanTalk {
      * ============================================================ */
 
     /**
+     * CleanTalk is asked per client: the verdict cache and the API quota are
+     * both scoped by it. Without a usable client IP (broken REMOTE_ADDR,
+     * CLI) a guest request has no scope, so the check is skipped instead of
+     * calling the API on every request without any quota guard.
+     */
+    private function has_usable_client(): bool {
+        if ( is_user_logged_in() ) { return true; }
+        return $this->security->get_client_ip() !== '';
+    }
+
+    /**
      * Независимый rate-limit на вызовы CleanTalk API.
      * Возвращает true, если можно звать API, false — если лимит
      * исчерпан. Используется параллельно с acquire_api_lock():
      * лок сериализует вызовы, а этот лимит — ограничивает частоту.
      */
     private function ct_api_rate_ok( string $scope ): bool {
-        $key    = 'wssf_ct_api_rl_' . md5( $scope );
-        $cached = $this->cache->get( $key );
-        $count  = is_array( $cached ) && isset( $cached['val'] ) ? (int) $cached['val'] : 0;
+        $key = 'wssf_ct_api_rl_' . md5( $scope );
 
         $max = (int) apply_filters( 'wssf_ct_api_rate_max', self::API_RATE_MAX );
         if ( $max <= 0 ) { return true; }
 
+        // A protective counter, not a cache: it has to work on every site, so
+        // it uses a transient of its own instead of the Redis cache backend
+        // (which is absent on most installs). Without it a client could call
+        // the CleanTalk API on every request and burn the account quota.
+        $count = (int) get_transient( $key );
         if ( $count >= $max ) { return false; }
 
-        $this->cache->set( $key, [ 'val' => $count + 1 ], self::API_RATE_WINDOW );
+        set_transient( $key, $count + 1, self::API_RATE_WINDOW );
         return true;
     }
 

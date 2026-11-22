@@ -3,6 +3,10 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 $strict_mode  = WSSF_Admin_Settings::get_strict_mode();
+$cleantalk    = WSSF_CleanTalk::state();
+$ct_mode      = $cleantalk['mode'];
+$ct_on        = $cleantalk['available'];
+$ct_effective = $cleantalk['effective'];
 $ttl_user     = WSSF_Admin_Settings::get_ttl_user();
 $ttl_guest    = WSSF_Admin_Settings::get_ttl_guest();
 $did_you_mean = WSSF_Admin_Settings::is_did_you_mean_enabled();
@@ -106,6 +110,43 @@ if ( ! is_array( $sw_rows ) ) { $sw_rows = []; }
 
             <tr>
                 <th scope="row">
+                    <label for="wssf_cleantalk_mode">
+                        <?php esc_html_e( 'Антиспам CleanTalk', 'wp-smart-search-frontend' ); ?>
+                    </label>
+                </th>
+                <td>
+                    <select name="wssf_cleantalk_mode" id="wssf_cleantalk_mode">
+                        <option value="auto" <?php selected( $ct_mode, 'auto' ); ?>>
+                            <?php esc_html_e( 'Авто — только если CleanTalk установлен', 'wp-smart-search-frontend' ); ?>
+                        </option>
+                        <option value="on" <?php selected( $ct_mode, 'on' ); ?><?php if ( ! $ct_on && $ct_mode !== 'on' ) { echo ' disabled'; } ?>>
+                            <?php esc_html_e( 'Всегда включена', 'wp-smart-search-frontend' ); ?>
+                        </option>
+                        <option value="off" <?php selected( $ct_mode, 'off' ); ?>>
+                            <?php esc_html_e( 'Выключена', 'wp-smart-search-frontend' ); ?>
+                        </option>
+                    </select>
+
+                    <p class="description">
+                        <?php if ( $ct_on ) : ?>
+                            <span class="wssf-ct-ok">&#10004;</span>
+                            <?php esc_html_e( 'CleanTalk обнаружен.', 'wp-smart-search-frontend' ); ?>
+                        <?php else : ?>
+                            <span class="wssf-ct-bad">&#10007;</span>
+                            <?php esc_html_e( 'CleanTalk не обнаружен — проверка отключена, поиск работает как обычно.', 'wp-smart-search-frontend' ); ?>
+                        <?php endif; ?>
+
+                        <?php if ( $ct_on && ! $ct_effective ) : ?>
+                            <?php esc_html_e( 'Сейчас проверка выключена выбранным режимом.', 'wp-smart-search-frontend' ); ?>
+                        <?php elseif ( ! $ct_on && $ct_mode === 'on' ) : ?>
+                            <?php esc_html_e( 'Режим «Всегда включена» выбран, но без плагина CleanTalk проверка выполняться не будет.', 'wp-smart-search-frontend' ); ?>
+                        <?php endif; ?>
+                    </p>
+                </td>
+            </tr>
+
+            <tr>
+                <th scope="row">
                     <label for="wssf_strict_mode">
                         <?php esc_html_e( 'Strict-режим CleanTalk', 'wp-smart-search-frontend' ); ?>
                     </label>
@@ -123,7 +164,7 @@ if ( ! is_array( $sw_rows ) ) { $sw_rows = []; }
                         </option>
                     </select>
                     <p class="description">
-                        <?php esc_html_e( 'Очистка полей CleanTalk перед AJAX-проверкой.', 'wp-smart-search-frontend' ); ?>
+                        <?php esc_html_e( 'Очистка полей CleanTalk перед AJAX-проверкой. Действует только когда проверка CleanTalk включена.', 'wp-smart-search-frontend' ); ?>
                     </p>
                 </td>
             </tr>

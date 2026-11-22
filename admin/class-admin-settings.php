@@ -123,6 +123,29 @@ final class WSSF_Admin_Settings {
         return in_array( $mode, [ 'auto', 'on', 'off' ], true ) ? $mode : 'auto';
     }
 
+    /**
+     * CleanTalk integration mode: auto | on | off.
+     *
+     * `auto` (default) turns the check on only when CleanTalk is really
+     * installed. Sites that saved the old checkbox before the mode existed
+     * keep their choice: `wssf_cleantalk_enabled = 1` reads as `on`,
+     * `0` reads as `off`.
+     */
+    public static function get_cleantalk_mode(): string {
+        $mode = get_option( 'wssf_cleantalk_mode', null );
+
+        if ( $mode === null ) {
+            $legacy = get_option( 'wssf_cleantalk_enabled', null );
+            if ( $legacy !== null ) {
+                return (bool) $legacy ? 'on' : 'off';
+            }
+            return 'auto';
+        }
+
+        $mode = (string) $mode;
+        return in_array( $mode, [ 'auto', 'on', 'off' ], true ) ? $mode : 'auto';
+    }
+
     public static function get_ttl_user(): int  { return max( 0, (int) get_option( 'wssf_ttl_user', 60 ) ); }
     public static function get_ttl_guest(): int { return max( 0, (int) get_option( 'wssf_ttl_guest', 60 ) ); }
 

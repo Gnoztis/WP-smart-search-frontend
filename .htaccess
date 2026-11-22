@@ -1,4 +1,4 @@
-# Защита служебных файлов плагина от прямого HTTP-доступа.
+# Deny direct HTTP access to the service files of the plugin.
 
 <FilesMatch "\.(md|txt|log|sh|bak|swp|ini|lock|dist)$">
     <IfModule mod_authz_core.c>
@@ -10,13 +10,8 @@
     </IfModule>
 </FilesMatch>
 
-# Защита служебных директорий
+# Deny service directories.
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteRule ^\.(git|idea|vscode|env) - [F,L]
-</IfModule>
-
-# Внутренняя папка — полный запрет (дублирует _internal/.htaccess)
-<IfModule mod_rewrite.c>
-    RewriteRule ^_internal/ - [F,L]
 </IfModule>

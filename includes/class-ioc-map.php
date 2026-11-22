@@ -233,7 +233,7 @@ final class WSSF_IOC_Map {
         $table = $this->table();
         if ( $table === null ) { return 0; }
         global $wpdb;
-        try { return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); }
+        try { return (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
         catch ( \Throwable $e ) { return 0; }
     }
 
@@ -241,7 +241,7 @@ final class WSSF_IOC_Map {
         $table = $this->table();
         if ( $table === null ) { return; }
         global $wpdb;
-        try { $wpdb->query( "TRUNCATE TABLE `{$table}`" ); }
+        try { $wpdb->query( "TRUNCATE TABLE `{$table}`" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
         catch ( \Throwable $e ) {}
     }
 }

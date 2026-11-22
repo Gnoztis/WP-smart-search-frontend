@@ -63,7 +63,7 @@ final class WSSF_Migrations {
         global $wpdb;
         $emb_table = (string) $wpdb->prefix . 'wssf_embeddings';
         if ( preg_match( '/^[a-zA-Z0-9_]+$/', $emb_table ) ) {
-            $wpdb->query( "DROP TABLE IF EXISTS `{$emb_table}`" );
+            $wpdb->query( "DROP TABLE IF EXISTS `{$emb_table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
         }
         delete_option( 'wssf_openai_key' );
         delete_option( 'wssf_embedding_model' );
@@ -95,7 +95,7 @@ final class WSSF_Migrations {
                 DB_NAME, $table
             ) );
             if ( $col === 0 ) {
-                try { $wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN post_type VARCHAR(64) NOT NULL DEFAULT 'post'" ); }
+                try { $wpdb->query( "ALTER TABLE `{$table}` ADD COLUMN post_type VARCHAR(64) NOT NULL DEFAULT 'post'" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 catch ( \Throwable $e ) {}
             }
             $idx = (int) $wpdb->get_var( $wpdb->prepare(
@@ -103,10 +103,10 @@ final class WSSF_Migrations {
                 DB_NAME, $table
             ) );
             if ( $idx === 0 ) {
-                try { $wpdb->query( "ALTER TABLE `{$table}` ADD INDEX post_type_idx (post_type)" ); }
+                try { $wpdb->query( "ALTER TABLE `{$table}` ADD INDEX post_type_idx (post_type)" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 catch ( \Throwable $e ) {}
             }
-            try { $wpdb->query( "UPDATE `{$table}` i INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id SET i.post_type = p.post_type WHERE p.post_type != i.post_type" ); }
+            try { $wpdb->query( "UPDATE `{$table}` i INNER JOIN {$wpdb->posts} p ON p.ID = i.post_id SET i.post_type = p.post_type WHERE p.post_type != i.post_type" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL without user input; the table name is validated with /^[a-zA-Z0-9_]+$/.
             catch ( \Throwable $e ) {}
         }
         $terms = (string) $wpdb->prefix . 'wssf_terms';
@@ -140,7 +140,7 @@ final class WSSF_Migrations {
             ) ENGINE=InnoDB {$charset};";
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
             dbDelta( $sql );
-            $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
+            $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
             if ( $count === 0 && class_exists( 'WSSF_Stopwords' ) ) {
                 WSSF_Stopwords::instance()->load_defaults();
             }
@@ -244,7 +244,7 @@ final class WSSF_Migrations {
         if ( preg_match( '/^[a-zA-Z0-9_]+$/', $minhash ) ) {
             $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $minhash ) ) === $minhash;
             if ( $exists ) {
-                try { $wpdb->query( "TRUNCATE TABLE `{$minhash}`" ); }
+                try { $wpdb->query( "TRUNCATE TABLE `{$minhash}`" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 catch ( \Throwable $e ) {}
             }
         }

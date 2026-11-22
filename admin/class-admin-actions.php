@@ -19,6 +19,12 @@ final class WSSF_Admin_Actions {
         if ( ! in_array( $strict_mode, [ 'auto', 'on', 'off' ], true ) ) { $strict_mode = 'auto'; }
         update_option( 'wssf_strict_mode', $strict_mode, true );
 
+        // CleanTalk is optional: auto | on | off (see WSSF_Admin_Settings).
+        $cleantalk_mode = isset( $_POST['wssf_cleantalk_mode'] )
+            ? sanitize_key( wp_unslash( $_POST['wssf_cleantalk_mode'] ) ) : 'auto';
+        if ( ! in_array( $cleantalk_mode, [ 'auto', 'on', 'off' ], true ) ) { $cleantalk_mode = 'auto'; }
+        update_option( 'wssf_cleantalk_mode', $cleantalk_mode, true );
+
         update_option( 'wssf_ttl_user',  max( 0, (int) ( $_POST['wssf_ttl_user']  ?? 60 ) ), true );
         update_option( 'wssf_ttl_guest', max( 0, (int) ( $_POST['wssf_ttl_guest'] ?? 60 ) ), true );
 
@@ -363,11 +369,11 @@ final class WSSF_Admin_Actions {
         try {
             if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table ) ) {
                 $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
-                if ( $exists ) { $wpdb->query( "DELETE FROM `{$table}`" ); }
+                if ( $exists ) { $wpdb->query( "DELETE FROM `{$table}`" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL/DML statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
             if ( preg_match( '/^[a-zA-Z0-9_]+$/', $terms ) ) {
                 $exists = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $terms ) ) === $terms;
-                if ( $exists ) { $wpdb->query( "TRUNCATE TABLE `{$terms}`" ); }
+                if ( $exists ) { $wpdb->query( "TRUNCATE TABLE `{$terms}`" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL/DML statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
         } catch ( \Throwable $e ) {
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -420,10 +426,10 @@ final class WSSF_Admin_Actions {
 
         try {
             if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table ) ) {
-                $wpdb->query( "DROP TABLE IF EXISTS `{$table}`" );
+                $wpdb->query( "DROP TABLE IF EXISTS `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
             if ( preg_match( '/^[a-zA-Z0-9_]+$/', $terms ) ) {
-                $wpdb->query( "DROP TABLE IF EXISTS `{$terms}`" );
+                $wpdb->query( "DROP TABLE IF EXISTS `{$terms}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
         } catch ( \Throwable $e ) {
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
@@ -574,6 +580,22 @@ final class WSSF_Admin_Actions {
      *  AJAX: переиндексация
      * ============================================================ */
 
+    /**
+     * Error text for an AJAX reply.
+     *
+     * The raw exception message can carry SQL fragments, table names and
+     * absolute paths; it is only sent to the browser with WP_DEBUG on.
+     */
+    private static function error_text( \Throwable $e ): string {
+        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
+            return sanitize_text_field( $e->getMessage() );
+        }
+        if ( function_exists( 'error_log' ) ) {
+            error_log( '[WSSF] reindex error: ' . sanitize_text_field( $e->getMessage() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- server log only, never sent to the browser.
+        }
+        return __( 'Ошибка операции. Подробности — в логе сервера.', 'wp-smart-search-frontend' );
+    }
+
     public static function ajax_reindex_start(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
             wp_send_json_error( [ 'message' => 'Forbidden' ], 403 );
@@ -594,7 +616,7 @@ final class WSSF_Admin_Actions {
                 ? $indexer->count_missing_posts()
                 : $indexer->count_all_posts();
         } catch ( \Throwable $e ) {
-            wp_send_json_error( [ 'message' => sanitize_text_field( $e->getMessage() ) ], 500 );
+            wp_send_json_error( [ 'message' => self::error_text( $e ) ], 500 );
         }
 
         $batch_size = max( 10, min( 500, (int) get_option( 'wssf_reindex_batch_size', 200 ) ) );
@@ -631,7 +653,7 @@ final class WSSF_Admin_Actions {
                 $ids = $indexer->get_all_post_ids( $offset, $batch_size );
             }
         } catch ( \Throwable $e ) {
-            wp_send_json_error( [ 'message' => sanitize_text_field( $e->getMessage() ) ], 500 );
+            wp_send_json_error( [ 'message' => self::error_text( $e ) ], 500 );
         }
 
         $processed = 0;
@@ -642,7 +664,7 @@ final class WSSF_Admin_Actions {
                 $processed++;
             }
         } catch ( \Throwable $e ) {
-            wp_send_json_error( [ 'message' => sanitize_text_field( $e->getMessage() ) ], 500 );
+            wp_send_json_error( [ 'message' => self::error_text( $e ) ], 500 );
         }
 
         if ( $written === 0 && $processed > 0 ) {
@@ -742,7 +764,7 @@ final class WSSF_Admin_Actions {
                      WHERE post_status = 'publish' AND post_type IN ($ph)",
                     $post_types
                 );
-                $stats['total_posts'] = (int) $wpdb->get_var( $sql );
+                $stats['total_posts'] = (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- the SQL string is built with $wpdb->prepare() above.
             }
         } catch ( \Throwable $e ) { /* ignore */ }
 
@@ -755,7 +777,7 @@ final class WSSF_Admin_Actions {
             $stats['terms_exists'] = preg_match( '/^[a-zA-Z0-9_]+$/', $terms_table )
                 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $terms_table ) ) === $terms_table;
             if ( $stats['terms_exists'] ) {
-                $stats['terms_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$terms_table}`" );
+                $stats['terms_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$terms_table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
         } catch ( \Throwable $e ) { /* ignore */ }
 
@@ -763,7 +785,7 @@ final class WSSF_Admin_Actions {
             $stats['sw_exists'] = preg_match( '/^[a-zA-Z0-9_]+$/', $sw_table )
                 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $sw_table ) ) === $sw_table;
             if ( $stats['sw_exists'] ) {
-                $stats['sw_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$sw_table}`" );
+                $stats['sw_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$sw_table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
         } catch ( \Throwable $e ) { /* ignore */ }
 
@@ -771,7 +793,7 @@ final class WSSF_Admin_Actions {
             $stats['ioc_exists'] = preg_match( '/^[a-zA-Z0-9_]+$/', $ioc_table )
                 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $ioc_table ) ) === $ioc_table;
             if ( $stats['ioc_exists'] ) {
-                $stats['ioc_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$ioc_table}`" );
+                $stats['ioc_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$ioc_table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
         } catch ( \Throwable $e ) { /* ignore */ }
 
@@ -779,14 +801,14 @@ final class WSSF_Admin_Actions {
             $stats['minhash_exists'] = preg_match( '/^[a-zA-Z0-9_]+$/', $minhash_table )
                 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $minhash_table ) ) === $minhash_table;
             if ( $stats['minhash_exists'] ) {
-                $stats['minhash_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$minhash_table}`" );
+                $stats['minhash_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$minhash_table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
             }
         } catch ( \Throwable $e ) { /* ignore */ }
 
         if ( ! $stats['exists'] ) { return $stats; }
 
         try {
-            $row = $wpdb->get_row(
+            $row = $wpdb->get_row( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 "SELECT COUNT(*) AS cnt,
                         COALESCE(SUM(
                             LENGTH(title_stem) + LENGTH(content_stem) +
@@ -805,7 +827,7 @@ final class WSSF_Admin_Actions {
 
         $stats['missing'] = max( 0, $stats['total_posts'] - $stats['count'] );
 
-        try { $wpdb->query( "ANALYZE TABLE `{$table}`" ); } catch ( \Throwable $e ) { /* ignore */ }
+        try { $wpdb->query( "ANALYZE TABLE `{$table}`" ); } catch ( \Throwable $e ) { /* ignore */ } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
 
         try {
             $row = $wpdb->get_row( $wpdb->prepare(

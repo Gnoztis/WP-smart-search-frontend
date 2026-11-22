@@ -75,7 +75,7 @@ final class WSSF_Indexer {
             if ( $this->index_exists( $idx['table'], $idx['name'] ) ) {
                 $result[ $idx['name'] ] = 'exists'; continue;
             }
-            try { $wpdb->query( $idx['sql'] ); $result[ $idx['name'] ] = 'created'; }
+            try { $wpdb->query( $idx['sql'] ); $result[ $idx['name'] ] = 'created'; } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- constant SQL from the index list; both names come from $wpdb core properties.
             catch ( \Throwable $e ) { $result[ $idx['name'] ] = 'error: ' . sanitize_text_field( $e->getMessage() ); }
         }
         return $result;
@@ -113,7 +113,7 @@ final class WSSF_Indexer {
             "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type IN ($ph)",
             $post_types
         );
-        return (int) $wpdb->get_var( $sql );
+        return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- the SQL string is built with $wpdb->prepare() above.
     }
 
     public function count_missing_posts(): int {
@@ -127,7 +127,7 @@ final class WSSF_Indexer {
              WHERE p.post_status = 'publish' AND p.post_type IN ($ph) AND i.post_id IS NULL",
             $post_types
         );
-        return (int) $wpdb->get_var( $sql );
+        return (int) $wpdb->get_var( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- the SQL string is built with $wpdb->prepare() above.
     }
 
     public function get_all_post_ids( int $offset, int $limit ): array {
@@ -141,7 +141,7 @@ final class WSSF_Indexer {
              ORDER BY ID ASC LIMIT %d OFFSET %d",
             $params
         );
-        $ids = $wpdb->get_col( $sql );
+        $ids = $wpdb->get_col( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- the SQL string is built with $wpdb->prepare() above.
         return is_array( $ids ) ? array_map( 'intval', $ids ) : [];
     }
 
@@ -158,7 +158,7 @@ final class WSSF_Indexer {
              ORDER BY p.ID ASC LIMIT %d",
             $params
         );
-        $ids = $wpdb->get_col( $sql );
+        $ids = $wpdb->get_col( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- the SQL string is built with $wpdb->prepare() above.
         return is_array( $ids ) ? array_map( 'intval', $ids ) : [];
     }
 
@@ -341,7 +341,7 @@ final class WSSF_Indexer {
                 } catch ( \Throwable $e ) {}
             }
             // Чистка нулевых — один запрос.
-            try { $wpdb->query( "DELETE FROM `{$this->terms_table}` WHERE post_count <= 0" ); }
+            try { $wpdb->query( "DELETE FROM `{$this->terms_table}` WHERE post_count <= 0" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
             catch ( \Throwable $e ) {}
         }
 
@@ -394,7 +394,7 @@ final class WSSF_Indexer {
 
     public function truncate_terms(): void {
         global $wpdb;
-        try { $wpdb->query( "TRUNCATE TABLE `{$this->terms_table}`" ); }
+        try { $wpdb->query( "TRUNCATE TABLE `{$this->terms_table}`" ); } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- DDL statement without placeholders; the table name is validated with /^[a-zA-Z0-9_]+$/.
         catch ( \Throwable $e ) {}
     }
 
@@ -407,7 +407,7 @@ final class WSSF_Indexer {
             "SELECT ID FROM {$wpdb->posts} WHERE post_status = 'publish' AND post_type IN ($ph)",
             $post_types
         );
-        $ids = $wpdb->get_col( $sql );
+        $ids = $wpdb->get_col( $sql ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- the SQL string is built with $wpdb->prepare() above.
 
         $count = 0;
         foreach ( $ids as $id ) { $this->index_post( (int) $id ); $count++; }

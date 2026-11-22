@@ -40,10 +40,14 @@ final class WSSF_Security_Headers {
         $csp = $this->build_csp();
         if ( $csp === '' ) { return; }
 
+        // The header value is assembled from options, and sanitize_textarea_field()
+        // keeps line breaks; a CR/LF must never reach header().
+        $csp = (string) preg_replace( '/[\r\n]+/', ' ', $csp );
+
         if ( $mode === 'report_only' ) {
-            header( "Content-Security-Policy-Report-Only: {$csp}" );
+            header( 'Content-Security-Policy-Report-Only: ' . $csp ); // phpcs:ignore -- CR/LF stripped above; value comes from options, not from the request.
         } else {
-            header( "Content-Security-Policy: {$csp}" );
+            header( 'Content-Security-Policy: ' . $csp ); // phpcs:ignore -- CR/LF stripped above; value comes from options, not from the request.
         }
     }
 

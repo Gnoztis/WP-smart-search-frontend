@@ -285,7 +285,7 @@ final class WSSF_Fuzzy_Index {
         if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table ) ) { return []; }
 
         try {
-            $rows = $wpdb->get_results( "SELECT title_stem, tags_stem FROM `{$table}` LIMIT 5000" );
+            $rows = $wpdb->get_results( "SELECT title_stem, tags_stem FROM `{$table}` LIMIT 5000" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
         } catch ( \Throwable $e ) {
             return [];
         }

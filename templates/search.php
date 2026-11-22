@@ -4,8 +4,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 get_header();
 
 $raw_s = '';
-if ( isset( $_GET['s'] ) && is_string( $_GET['s'] ) ) {
+if ( isset( $_GET['s'] ) ) {
     $raw_s = wp_unslash( $_GET['s'] );
+    if ( ! is_string( $raw_s ) ) { $raw_s = ''; }
 }
 if ( $raw_s === '' && ! empty( $_SERVER['REQUEST_URI'] ) ) {
     $request_uri = (string) $_SERVER['REQUEST_URI'];
@@ -68,11 +69,11 @@ $categories = get_categories( [ 'hide_empty' => false ] );
                     <input type="search"
                            name="s"
                            id="wssf-input"
-                           class="wssf-input<?php echo $is_too_short ? ' wssf-input--error' : ''; ?>"
+                           class="wssf-input<?php if ( $is_too_short ) { echo ' wssf-input--error'; } ?>"
                            value="<?php echo esc_attr( $initial_query ); ?>"
                            placeholder="<?php echo esc_attr_x( 'Поиск…', 'placeholder', 'wp-smart-search-frontend' ); ?>"
                            aria-label="<?php esc_attr_e( 'Поиск', 'wp-smart-search-frontend' ); ?>"
-                           <?php echo $is_too_short ? 'aria-invalid="true"' : ''; ?>
+                           <?php if ( $is_too_short ) { echo 'aria-invalid="true"'; } ?>
                            autocomplete="off" />
 
                     <button type="button"
@@ -80,7 +81,7 @@ $categories = get_categories( [ 'hide_empty' => false ] );
                             class="wssf-clear"
                             aria-label="<?php esc_attr_e( 'Очистить строку поиска', 'wp-smart-search-frontend' ); ?>"
                             title="<?php esc_attr_e( 'Очистить', 'wp-smart-search-frontend' ); ?>"
-                            <?php echo $has_query ? '' : 'hidden'; ?>>
+                            <?php if ( ! $has_query ) { echo 'hidden'; } ?>>
                         <span aria-hidden="true">&times;</span>
                     </button>
                 </div>
@@ -118,9 +119,9 @@ $categories = get_categories( [ 'hide_empty' => false ] );
                 </button>
 
                 <?php
-                if ( function_exists( 'ct_add_hidden_fields' ) ) {
-                    echo ct_add_hidden_fields( 'ct_checkjs_search_default', true );
-                }
+                // Hidden fields of the CleanTalk check: empty unless the
+                // integration is active (see WSSF_CleanTalk::active()).
+                echo WSSF_CleanTalk::form_fields(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- third-party CleanTalk markup, returned only when the integration is active.
                 ?>
             </form>
 

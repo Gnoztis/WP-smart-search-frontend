@@ -151,8 +151,8 @@ final class WSSF_Ajax_Handler {
         $op = isset( $_POST['op'] ) ? sanitize_key( wp_unslash( $_POST['op'] ) ) : 'fetch';
 
         if ( $op === 'save' ) {
-            $items = isset( $_POST['items'] ) ? wp_unslash( $_POST['items'] ) : '[]';
-            $arr = json_decode( (string) $items, true );
+            $raw_items = isset( $_POST['items'] ) ? wp_unslash( $_POST['items'] ) : '[]';
+            $arr       = is_string( $raw_items ) ? json_decode( $raw_items, true ) : null;
             if ( ! is_array( $arr ) ) { $arr = []; }
 
             $clean = [];
@@ -190,7 +190,11 @@ final class WSSF_Ajax_Handler {
         if ( ! $this->security->rate_limit_ok() ) { wp_send_json_error( [ 'message' => 'Too many requests' ], 429 ); }
         if ( $this->autocomplete === null ) { wp_send_json_success( [ 'items' => [] ] ); }
 
-        $q = isset( $_POST['q'] ) ? WSSF_Query_Parser::sanitize( wp_unslash( $_POST['q'] ) ) : '';
+        // A non-scalar "q" (q[]=x) must be rejected here: passing it to a
+        // string parameter would be a TypeError and end the request with a
+        // PHP fatal error on a public endpoint.
+        $raw_q = isset( $_POST['q'] ) ? wp_unslash( $_POST['q'] ) : '';
+        $q     = is_string( $raw_q ) ? WSSF_Query_Parser::sanitize( $raw_q ) : '';
         if ( $q === '' ) { wp_send_json_success( [ 'items' => [], 'query' => '' ] ); }
 
         try { $items = $this->autocomplete->suggest( $q ); }

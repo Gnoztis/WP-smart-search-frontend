@@ -62,6 +62,8 @@ final class WSSF_Admin_Diagnostics {
             'mysql_version'        => '',
             'mbstring'             => extension_loaded( 'mbstring' ) ? 'yes' : 'no',
             'redis_ext'            => extension_loaded( 'redis' ) ? 'yes' : 'no',
+            'cache_backend'        => 'none',
+            'cache_backoff'        => 0,
             'redis_server_version' => '',
             'redis_client_version' => '',
             'cache_generation'     => 0,
@@ -69,6 +71,8 @@ final class WSSF_Admin_Diagnostics {
             'index_count'          => 0,
             'index_total_posts'    => 0,
             'cleantalk_active'     => function_exists( 'apbct_base_call' ) ? 'yes' : 'no',
+            'cleantalk_mode'       => class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_cleantalk_mode() : 'auto',
+            'cleantalk_effective'  => ( class_exists( 'WSSF_CleanTalk' ) && WSSF_CleanTalk::active() ) ? 'yes' : 'no',
             'cleantalk_key_ok'     => 'N/A',
             'cleantalk_cookies'    => 'N/A',
             'diag_enabled'         => (bool) apply_filters( 'wssf_diag_enabled', false ),
@@ -84,6 +88,8 @@ final class WSSF_Admin_Diagnostics {
                 $env['cache_generation']     = $plugin->cache->generation();
                 $env['redis_server_version'] = $plugin->cache->redis_server_version();
             }
+            $env['cache_backend']        = WSSF_Cache::backend();
+            $env['cache_backoff']        = max( 0, WSSF_Cache::backoff_until() - time() );
             $env['redis_client_version'] = WSSF_Cache::redis_client_version();
         } catch ( \Throwable $e ) { /* ignore */ }
 
@@ -92,10 +98,10 @@ final class WSSF_Admin_Diagnostics {
             if ( preg_match( '/^[a-zA-Z0-9_]+$/', $table ) ) {
                 $env['index_table_exists'] = $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
                 if ( $env['index_table_exists'] ) {
-                    $env['index_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
+                    $env['index_count'] = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 }
             }
-            $env['index_total_posts'] = (int) $wpdb->get_var(
+            $env['index_total_posts'] = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL without user input; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 "SELECT COUNT(*) FROM {$wpdb->posts}
                  WHERE post_status = 'publish' AND post_type IN ('post','page')"
             );
@@ -214,10 +220,10 @@ final class WSSF_Admin_Diagnostics {
             $out['index_exists'] = $table_valid
                 && $wpdb->get_var( $wpdb->prepare( 'SHOW TABLES LIKE %s', $table ) ) === $table;
             if ( $out['index_exists'] ) {
-                $out['index_count']      = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" );
+                $out['index_count']      = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 $out['index_updated_at'] = (string) get_option( 'wssf_index_updated_at', '' );
             }
-            $out['index_total_posts'] = (int) $wpdb->get_var(
+            $out['index_total_posts'] = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL without user input; the table name is validated with /^[a-zA-Z0-9_]+$/.
                 "SELECT COUNT(*) FROM {$wpdb->posts}
                  WHERE post_status = 'publish' AND post_type IN ('post','page')"
             );
@@ -570,7 +576,10 @@ final class WSSF_Admin_Diagnostics {
 
     private function execute_all_scenarios( string $query ): array {
         if ( ! function_exists( 'apbct_base_call' ) ) {
-            return [ 'error' => 'apbct_base_call() недоступна' ];
+            return [ 'error' => 'CleanTalk не обнаружен — тест недоступен' ];
+        }
+        if ( ! WSSF_CleanTalk::active() ) {
+            return [ 'error' => 'Проверка CleanTalk выключена режимом «выключена» — тест не выполняется' ];
         }
         $scenarios = [
             'default_no_exception_action' => [
@@ -748,6 +757,7 @@ final class WSSF_Admin_Diagnostics {
         $out[] = 'MySQL        : ' . $env['mysql_version'];
         $out[] = 'mbstring     : ' . $env['mbstring'];
         $out[] = 'redis ext    : ' . $env['redis_ext'];
+        $out[] = 'cache backend: ' . $env['cache_backend'] . ( $env['cache_backoff'] > 0 ? ' (backoff ' . (int) $env['cache_backoff'] . 's)' : '' );
         $out[] = 'redis server : ' . ( $env['redis_server_version'] !== '' ? $env['redis_server_version'] : 'N/A' );
         $out[] = 'redis client : ' . ( $env['redis_client_version'] !== '' ? $env['redis_client_version'] : 'N/A' );
         $out[] = 'diag_enabled : ' . ( $env['diag_enabled'] ? 'true' : 'false' );
@@ -773,6 +783,7 @@ final class WSSF_Admin_Diagnostics {
             $out[] = 'mysql_version        : ' . $env['mysql_version'];
             $out[] = 'mbstring             : ' . $env['mbstring'];
             $out[] = 'redis_ext            : ' . $env['redis_ext'];
+            $out[] = 'cache_backend        : ' . $env['cache_backend'] . ( $env['cache_backoff'] > 0 ? ' (backoff ' . (int) $env['cache_backoff'] . 's)' : '' );
             $out[] = 'redis_server_version : ' . ( $env['redis_server_version'] !== '' ? $env['redis_server_version'] : 'N/A' );
             $out[] = 'redis_client_version : ' . ( $env['redis_client_version'] !== '' ? $env['redis_client_version'] : 'N/A' );
             $out[] = 'cache_generation     : ' . (string) $env['cache_generation'];
@@ -780,6 +791,8 @@ final class WSSF_Admin_Diagnostics {
             $out[] = 'index_count          : ' . (string) $env['index_count'];
             $out[] = 'index_total_posts    : ' . (string) $env['index_total_posts'];
             $out[] = 'cleantalk_active     : ' . $env['cleantalk_active'];
+            $out[] = 'cleantalk_mode       : ' . $env['cleantalk_mode'];
+            $out[] = 'cleantalk_effective  : ' . $env['cleantalk_effective'];
             $out[] = 'cleantalk_key_ok     : ' . $env['cleantalk_key_ok'];
             $out[] = 'cleantalk_cookies    : ' . $env['cleantalk_cookies'];
         } catch ( \Throwable $e ) {
