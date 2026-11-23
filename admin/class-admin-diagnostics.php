@@ -36,7 +36,7 @@ final class WSSF_Admin_Diagnostics {
                 $search_last_query = (string) ( $search_data['query'] ?? '' );
             }
         } catch ( \Throwable $e ) {
-            $search_report = 'SEARCH_REPORT_ERROR: ' . sanitize_text_field( $e->getMessage() );
+            $search_report = 'SEARCH_REPORT_ERROR: ' . self::detail( $e );
         }
 
         $view = WSSF_PATH . 'admin/view-diagnostics.php';
@@ -47,6 +47,22 @@ final class WSSF_Admin_Diagnostics {
         }
         echo '<div class="notice notice-error"><p><b>View not found:</b> <code>'
             . esc_html( $view ) . '</code></p></div>';
+    }
+
+    /**
+     * SEC-001: exception detail for the diagnostics screen.
+     *
+     * The detail is always logged; it is shown on the screen only with
+     * WP_DEBUG, so a production admin never sees SQL or server paths.
+     */
+    private static function detail( \Throwable $e ): string {
+        $detail = sanitize_text_field( $e->getMessage() );
+
+        if ( function_exists( 'error_log' ) ) {
+            error_log( '[WSSF] internal: ' . $detail ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- server log only.
+        }
+
+        return ( defined( 'WP_DEBUG' ) && WP_DEBUG ) ? $detail : 'internal error';
     }
 
     /* ============================================================
@@ -132,7 +148,10 @@ final class WSSF_Admin_Diagnostics {
      * ============================================================ */
 
     public function handle_run(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'diagnostics' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_diag_run' );
 
         $query = isset( $_POST['test_query'] )
@@ -143,7 +162,7 @@ final class WSSF_Admin_Diagnostics {
         try {
             $results = $this->execute_all_scenarios( $query );
         } catch ( \Throwable $e ) {
-            $results = [ 'error' => 'EXCEPTION: ' . sanitize_text_field( $e->getMessage() ) ];
+            $results = [ 'error' => 'EXCEPTION: ' . self::detail( $e ) ];
         }
 
         set_transient( 'wssf_diag_results', [
@@ -164,7 +183,10 @@ final class WSSF_Admin_Diagnostics {
      * ============================================================ */
 
     public function handle_search_test(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'diagnostics' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_diag_search' );
 
         $query = isset( $_POST['search_query'] )
@@ -175,7 +197,7 @@ final class WSSF_Admin_Diagnostics {
         try {
             $result = $this->run_search_test( $query );
         } catch ( \Throwable $e ) {
-            $result = [ 'error' => 'EXCEPTION: ' . sanitize_text_field( $e->getMessage() ) ];
+            $result = [ 'error' => 'EXCEPTION: ' . self::detail( $e ) ];
         }
 
         set_transient( 'wssf_diag_search_result', [
@@ -326,7 +348,7 @@ final class WSSF_Admin_Diagnostics {
                 $out['fulltext']['elapsed_ms'] = round( ( microtime( true ) - $start ) * 1000, 2 );
             } catch ( \Throwable $e ) {
                 $out['fulltext']['ran']    = false;
-                $out['fulltext']['reason'] = 'EXCEPTION: ' . sanitize_text_field( $e->getMessage() );
+                $out['fulltext']['reason'] = 'EXCEPTION: ' . self::detail( $e );
             }
         } else {
             $out['fulltext']['ran'] = false;
@@ -350,7 +372,7 @@ final class WSSF_Admin_Diagnostics {
             $out['like']['elapsed_ms'] = round( ( microtime( true ) - $start ) * 1000, 2 );
         } catch ( \Throwable $e ) {
             $out['like']['ran']    = false;
-            $out['like']['reason'] = 'EXCEPTION: ' . sanitize_text_field( $e->getMessage() );
+            $out['like']['reason'] = 'EXCEPTION: ' . self::detail( $e );
         }
 
         $out['diagnosis'] = $this->diagnose( $out );
@@ -692,7 +714,7 @@ final class WSSF_Admin_Diagnostics {
         try {
             $result = apbct_base_call( $params );
         } catch ( \Throwable $e ) {
-            $exc = sanitize_text_field( $e->getMessage() );
+            $exc = self::detail( $e );
         }
 
         $_POST    = $saved_post;
@@ -812,7 +834,7 @@ final class WSSF_Admin_Diagnostics {
             $out[] = 'cleantalk_key_ok     : ' . $env['cleantalk_key_ok'];
             $out[] = 'cleantalk_cookies    : ' . $env['cleantalk_cookies'];
         } catch ( \Throwable $e ) {
-            $out[] = '# ENV — ERROR: ' . sanitize_text_field( $e->getMessage() );
+            $out[] = '# ENV — ERROR: ' . self::detail( $e );
         }
         $out[] = '';
 
@@ -820,7 +842,7 @@ final class WSSF_Admin_Diagnostics {
         try {
             $out[] = $this->last_ajax_text( $last_ajax );
         } catch ( \Throwable $e ) {
-            $out[] = 'ERROR: ' . sanitize_text_field( $e->getMessage() );
+            $out[] = 'ERROR: ' . self::detail( $e );
         }
         $out[] = '';
 
@@ -841,7 +863,7 @@ final class WSSF_Admin_Diagnostics {
                     try {
                         $out[] = $this->scenario_text( $idx, (string) $key, $res );
                     } catch ( \Throwable $e ) {
-                        $out[] = '[' . $idx . '] ' . sanitize_text_field( (string) $key ) . ' — SCENARIO_ERROR: ' . sanitize_text_field( $e->getMessage() );
+                        $out[] = '[' . $idx . '] ' . sanitize_text_field( (string) $key ) . ' — SCENARIO_ERROR: ' . self::detail( $e );
                     }
                     $out[] = '';
                 }

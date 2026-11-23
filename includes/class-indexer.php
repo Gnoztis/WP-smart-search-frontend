@@ -76,7 +76,10 @@ final class WSSF_Indexer {
                 $result[ $idx['name'] ] = 'exists'; continue;
             }
             try { $wpdb->query( $idx['sql'] ); $result[ $idx['name'] ] = 'created'; } // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- constant SQL from the index list; both names come from $wpdb core properties.
-            catch ( \Throwable $e ) { $result[ $idx['name'] ] = 'error: ' . sanitize_text_field( $e->getMessage() ); }
+            catch ( \Throwable $e ) {
+                error_log( '[WSSF] index: ' . sanitize_text_field( $e->getMessage() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- server log only.
+                $result[ $idx['name'] ] = 'error';
+            }
         }
         return $result;
     }

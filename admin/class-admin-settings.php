@@ -84,9 +84,12 @@ final class WSSF_Admin_Settings {
                         }
                     }
                 } catch ( \Throwable $e ) {
+                    // SEC-001: the exception text, the file and the line stay
+                    // in the log; the screen shows a stable code.
+                    error_log( '[WSSF] admin view: ' . sanitize_text_field( $e->getMessage() ) . ' @ ' . basename( $e->getFile() ) . ':' . (int) $e->getLine() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- server log only.
                     echo '<div class="notice notice-error"><p><b>WSSF error:</b> '
-                        . esc_html( $e->getMessage() )
-                        . ' (file: ' . esc_html( basename( $e->getFile() ) ) . ':' . (int) $e->getLine() . ')</p></div>';
+                        . esc_html__( 'Внутренняя ошибка. Подробности — в логе сервера.', 'wp-smart-search-frontend' )
+                        . ' <code>wssf_admin_view</code></p></div>';
                 }
                 ?>
             </div>

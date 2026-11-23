@@ -11,7 +11,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_save_settings(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_save_settings' );
 
         $strict_mode = isset( $_POST['wssf_strict_mode'] )
@@ -128,7 +131,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_save_semantic(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_save_semantic' );
 
         update_option( 'wssf_semantic_prf',      isset( $_POST['wssf_semantic_prf'] )      ? 1 : 0, true );
@@ -157,7 +163,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_save_ranking(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_save_ranking' );
 
         $raw = isset( $_POST['wssf_synonyms'] )
@@ -214,7 +223,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_save_stopwords(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_save_stopwords' );
 
         $action = isset( $_POST['wssf_sw_action'] )
@@ -260,7 +272,10 @@ final class WSSF_Admin_Actions {
     }
 
     public static function handle_stopwords_clear(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_stopwords_clear' );
 
         $lang = isset( $_POST['lang'] )
@@ -277,7 +292,10 @@ final class WSSF_Admin_Actions {
     }
 
     public static function handle_stopwords_reload(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_stopwords_reload' );
 
         WSSF_Stopwords::instance()->load_defaults();
@@ -294,7 +312,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_cron_run_now(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_cron_run_now' );
 
         WSSF_Hooks::instance( WSSF_Plugin::instance() )->run_cron_reindex();
@@ -311,7 +332,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_ioc_map_rebuild(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_ioc_map_rebuild' );
 
         try {
@@ -359,7 +383,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_reset_index(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_reset_index' );
 
         global $wpdb;
@@ -417,7 +444,10 @@ final class WSSF_Admin_Actions {
     }
 
     public static function handle_drop_index(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_drop_index' );
 
         global $wpdb;
@@ -467,7 +497,10 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_clear_cache(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_clear_cache' );
 
         $cache = WSSF_Plugin::instance()->cache;
@@ -494,7 +527,10 @@ final class WSSF_Admin_Actions {
     }
 
     public static function handle_clear_ct_cache(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_clear_ct_cache' );
 
         $cache = WSSF_Plugin::instance()->cache;
@@ -509,7 +545,10 @@ final class WSSF_Admin_Actions {
     }
 
     public static function handle_clear_rate_limit(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_clear_rate_limit' );
         WSSF_Plugin::instance()->cache->flush_rate_limit_group();
         wp_safe_redirect( add_query_arg(
@@ -520,7 +559,10 @@ final class WSSF_Admin_Actions {
     }
 
     public static function handle_clear_diag_cache(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_clear_diag_cache' );
         WSSF_Plugin::instance()->cache->delete_transients_by_prefix( 'wssf_diag_' );
         wp_safe_redirect( add_query_arg(
@@ -531,7 +573,10 @@ final class WSSF_Admin_Actions {
     }
 
     public static function handle_clear_all_caches(): void {
-        if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Forbidden', 403 ); }
+        if ( ! current_user_can( 'manage_options' ) ) {
+            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            wp_die( 'Forbidden', 403 );
+        }
         check_admin_referer( 'wssf_clear_all_caches' );
 
         $cache = WSSF_Plugin::instance()->cache;
@@ -584,21 +629,19 @@ final class WSSF_Admin_Actions {
      * Error text for an AJAX reply.
      *
      * The raw exception message can carry SQL fragments, table names and
-     * absolute paths; it is only sent to the browser with WP_DEBUG on.
+     * absolute paths: never sent to the browser, logged instead (SEC-001).
      */
     private static function error_text( \Throwable $e ): string {
-        if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-            return sanitize_text_field( $e->getMessage() );
-        }
         if ( function_exists( 'error_log' ) ) {
-            error_log( '[WSSF] reindex error: ' . sanitize_text_field( $e->getMessage() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- server log only, never sent to the browser.
+            error_log( '[WSSF] internal: ' . sanitize_text_field( $e->getMessage() ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- server log only, never sent to the browser.
         }
         return __( 'Ошибка операции. Подробности — в логе сервера.', 'wp-smart-search-frontend' );
     }
 
     public static function ajax_reindex_start(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( [ 'message' => 'Forbidden' ], 403 );
+            WSSF_Security::log_event( 'cap_denied', 'ajax:reindex' );
+            wp_send_json_error( [ 'code' => 'wssf_cap_denied', 'message' => 'Forbidden' ], 403 );
         }
         check_ajax_referer( 'wssf_reindex_ajax', 'nonce' );
 
@@ -616,7 +659,7 @@ final class WSSF_Admin_Actions {
                 ? $indexer->count_missing_posts()
                 : $indexer->count_all_posts();
         } catch ( \Throwable $e ) {
-            wp_send_json_error( [ 'message' => self::error_text( $e ) ], 500 );
+            wp_send_json_error( [ 'code' => 'wssf_internal', 'message' => self::error_text( $e ) ], 500 );
         }
 
         $batch_size = max( 10, min( 500, (int) get_option( 'wssf_reindex_batch_size', 200 ) ) );
@@ -631,7 +674,8 @@ final class WSSF_Admin_Actions {
 
     public static function ajax_reindex_batch(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( [ 'message' => 'Forbidden' ], 403 );
+            WSSF_Security::log_event( 'cap_denied', 'ajax:reindex' );
+            wp_send_json_error( [ 'code' => 'wssf_cap_denied', 'message' => 'Forbidden' ], 403 );
         }
         check_ajax_referer( 'wssf_reindex_ajax', 'nonce' );
 
@@ -653,7 +697,7 @@ final class WSSF_Admin_Actions {
                 $ids = $indexer->get_all_post_ids( $offset, $batch_size );
             }
         } catch ( \Throwable $e ) {
-            wp_send_json_error( [ 'message' => self::error_text( $e ) ], 500 );
+            wp_send_json_error( [ 'code' => 'wssf_internal', 'message' => self::error_text( $e ) ], 500 );
         }
 
         $processed = 0;
@@ -664,7 +708,7 @@ final class WSSF_Admin_Actions {
                 $processed++;
             }
         } catch ( \Throwable $e ) {
-            wp_send_json_error( [ 'message' => self::error_text( $e ) ], 500 );
+            wp_send_json_error( [ 'code' => 'wssf_internal', 'message' => self::error_text( $e ) ], 500 );
         }
 
         if ( $written === 0 && $processed > 0 ) {

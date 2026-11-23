@@ -23,7 +23,8 @@ final class WSSF_Ajax_Handler {
             wp_send_json_error( [ 'message' => __( 'Метод не разрешён.', 'wp-smart-search-frontend' ) ], 405 );
         }
         if ( ! $this->security->verify_request() ) {
-            wp_send_json_error( [ 'message' => __( 'Доступ запрещён.', 'wp-smart-search-frontend' ) ], 403 );
+            WSSF_Security::log_event( 'nonce_failed', 'ajax:search' );
+            wp_send_json_error( [ 'code' => 'wssf_bad_nonce', 'message' => __( 'Доступ запрещён.', 'wp-smart-search-frontend' ) ], 403 );
         }
         if ( ! $this->security->rate_limit_ok() ) {
             wp_send_json_error( [ 'message' => __( 'Слишком много запросов. Подождите немного.', 'wp-smart-search-frontend' ) ], 429 );
@@ -33,7 +34,7 @@ final class WSSF_Ajax_Handler {
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'error_log' ) ) {
                 error_log( '[WSSF] AJAX handle fatal: ' . sanitize_text_field( $e->getMessage() ) );
             }
-            wp_send_json_error( [ 'message' => __( 'Ошибка поиска. Попробуйте позже.', 'wp-smart-search-frontend' ) ], 500 );
+            wp_send_json_error( [ 'code' => 'wssf_internal', 'message' => __( 'Ошибка поиска. Попробуйте позже.', 'wp-smart-search-frontend' ) ], 500 );
         }
     }
 
@@ -143,7 +144,10 @@ final class WSSF_Ajax_Handler {
     public function handle_history(): void {
         nocache_headers();
         if ( ! is_user_logged_in() ) { wp_send_json_error( [ 'message' => 'Auth required' ], 403 ); }
-        if ( ! check_ajax_referer( WSSF_Plugin::NONCE_ACTION, 'nonce', false ) ) { wp_send_json_error( [ 'message' => 'Bad nonce' ], 403 ); }
+        if ( ! check_ajax_referer( WSSF_Plugin::NONCE_ACTION, 'nonce', false ) ) {
+            WSSF_Security::log_event( 'nonce_failed', 'ajax:history' );
+            wp_send_json_error( [ 'code' => 'wssf_bad_nonce', 'message' => 'Bad nonce' ], 403 );
+        }
         if ( class_exists( 'WSSF_Admin_Settings' ) && ! WSSF_Admin_Settings::is_history_enabled() ) {
             wp_send_json_error( [ 'message' => 'History disabled' ], 403 );
         }
@@ -186,7 +190,10 @@ final class WSSF_Ajax_Handler {
     public function handle_suggest(): void {
         nocache_headers();
         if ( ! wp_doing_ajax() ) { wp_send_json_error( [ 'message' => 'Invalid context' ], 400 ); }
-        if ( ! $this->security->verify_request() ) { wp_send_json_error( [ 'message' => 'Forbidden' ], 403 ); }
+        if ( ! $this->security->verify_request() ) {
+            WSSF_Security::log_event( 'nonce_failed', 'ajax:suggest' );
+            wp_send_json_error( [ 'code' => 'wssf_bad_nonce', 'message' => 'Forbidden' ], 403 );
+        }
         if ( ! $this->security->rate_limit_ok() ) { wp_send_json_error( [ 'message' => 'Too many requests' ], 429 ); }
         if ( $this->autocomplete === null ) { wp_send_json_success( [ 'items' => [] ] ); }
 

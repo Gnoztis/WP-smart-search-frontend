@@ -88,6 +88,27 @@ final class WSSF_Security {
     }
 
     /**
+     * SEC-001 A09: one line per security event, no secrets.
+     *
+     * Events: nonce_failed, cap_denied, object_denied, github_rate_limit,
+     * github_unauthorized, github_forbidden. No e-mail, IP or request content.
+     *
+     * @param string $event   Event name from the vocabulary above.
+     * @param string $context Short handler label, e.g. "ajax:search".
+     */
+    public static function log_event( string $event, string $context = '' ): void {
+        if ( ! function_exists( 'error_log' ) ) { return; }
+
+        $line = '[wssf] security: ' . $event;
+
+        if ( $context !== '' ) {
+            $line .= ' ' . str_replace( [ "\r", "\n" ], ' ', $context );
+        }
+
+        error_log( $line ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- A09 security event, no secrets.
+    }
+
+    /**
      * A $_SERVER value as a sanitized string; empty when absent or not scalar.
      */
     private function server_string( string $key ): string {
