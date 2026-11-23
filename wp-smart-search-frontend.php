@@ -3,7 +3,7 @@
  * Plugin Name: WP Smart Search (Frontend)
  * Plugin URI: https://github.com/Gnoztis/WP-smart-search-frontend
  * Description: AJAX-поиск с фасетными фильтрами, локальным расширением запроса и поддержкой IOC.
- * Version: 5.4.2
+ * Version: 5.4.3
  * Author: Gnostis
  * Author URI: https://github.com/Gnoztis
  * Requires at least: 7.0
@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'WSSF_VERSION', '5.4.2' );
+define( 'WSSF_VERSION', '5.4.3' );
 define( 'WSSF_PLUGIN_FILE', __FILE__ );
 define( 'WSSF_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WSSF_URL',  plugin_dir_url( __FILE__ ) );
