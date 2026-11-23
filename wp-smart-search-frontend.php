@@ -3,7 +3,7 @@
  * Plugin Name: WP Smart Search (Frontend)
  * Plugin URI: https://github.com/Gnoztis/WP-smart-search-frontend
  * Description: AJAX-поиск с фасетными фильтрами, локальным расширением запроса и поддержкой IOC.
- * Version: 5.5.1
+ * Version: 5.5.2
  * Author: Gnostis
  * Author URI: https://github.com/Gnoztis
  * Requires at least: 7.0
@@ -18,10 +18,22 @@ declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'WSSF_VERSION', '5.5.1' );
+define( 'WSSF_VERSION', '5.5.2' );
 define( 'WSSF_PLUGIN_FILE', __FILE__ );
 define( 'WSSF_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WSSF_URL',  plugin_dir_url( __FILE__ ) );
+
+/*
+ * Compatibility guard for the namespaced code below: inside 
+amespace WSSF an
+ * unqualified constant name does not fall back to the global one — a missing name
+ * throws Error and takes the whole site down. 5.5.0 shipped exactly that mistake
+ * with VERSION, PATH and URL. The aliases make a missed reference harmless while
+ * tools/static-check/check-bare-constants.mjs keeps them out of the source.
+ */
+if ( ! defined( 'WSSF\VERSION' ) ) { define( 'WSSF\VERSION', WSSF_VERSION ); }
+if ( ! defined( 'WSSF\PATH' ) )    { define( 'WSSF\PATH', WSSF_PATH ); }
+if ( ! defined( 'WSSF\URL' ) )     { define( 'WSSF\URL', WSSF_URL ); }
 
 // The plugin ships its own loader for the WSSF namespace: no Composer, no
 // vendor directory, nothing outside this directory. Classes are loaded on
