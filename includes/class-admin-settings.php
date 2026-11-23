@@ -78,7 +78,7 @@ final class Admin_Settings {
                         Admin_Diagnostics::instance()->render_tab();
                     } else {
                         $view_name = self::VIEW_MAP[ $tab ];
-                        $view      = PATH . 'admin/view-' . $view_name . '.php';
+                        $view      = \WSSF_PATH . 'admin/view-' . $view_name . '.php';
                         if ( file_exists( $view ) ) {
                             require $view;
                         } else {

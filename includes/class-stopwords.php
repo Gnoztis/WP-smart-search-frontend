@@ -161,7 +161,7 @@ final class Stopwords {
         if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table ) ) { return $counts; }
 
         foreach ( self::LANGS as $lang ) {
-            $path = PATH . 'assets/stopwords/' . $lang . '.txt';
+            $path = \WSSF_PATH . 'assets/stopwords/' . $lang . '.txt';
             if ( ! is_readable( $path ) ) { $counts[ $lang ] = 0; continue; }
 
             $raw = @file_get_contents( $path );

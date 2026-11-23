@@ -146,7 +146,7 @@ final class Hooks {
     public function template_include( $template ) {
         if ( is_admin() || ! is_search() ) { return $template; }
         $this->plugin->cleantalk->check_search_get_request();
-        $custom = PATH . 'templates/search.php';
+        $custom = \WSSF_PATH . 'templates/search.php';
         return file_exists( $custom ) ? $custom : $template;
     }
 

@@ -8,7 +8,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 final class Migrations {
 
     public static function current_version(): string {
-        return defined( 'WSSF_VERSION' ) ? (string) VERSION : '0.0.0';
+        return defined( 'WSSF_VERSION' ) ? (string) \WSSF_VERSION : '0.0.0';
     }
 
     public static function stored_version(): string {

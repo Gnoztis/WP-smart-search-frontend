@@ -800,7 +800,7 @@ final class Admin_Actions {
             'optimized'      => false,
         ];
 
-        $stats['optimized'] = version_compare( $stats['schema_version'], VERSION, '>=' );
+        $stats['optimized'] = version_compare( $stats['schema_version'], \WSSF_VERSION, '>=' );
 
         try {
             $post_types = Search_Engine::get_post_types();

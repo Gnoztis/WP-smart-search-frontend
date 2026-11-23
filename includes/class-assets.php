@@ -59,19 +59,19 @@ final class Assets {
 
         $inline_css = ! $url_mode && $css !== '';
         if ( $inline_css ) {
-            wp_register_style( 'wssf-search', false, [], VERSION );
+            wp_register_style( 'wssf-search', false, [], \WSSF_VERSION );
             wp_enqueue_style( 'wssf-search' );
             wp_add_inline_style( 'wssf-search', $css );
-        } elseif ( $url_mode && is_readable( PATH . 'assets/search.css' ) ) {
-            wp_enqueue_style( 'wssf-search', URL . 'assets/search.css', [], VERSION );
+        } elseif ( $url_mode && is_readable( \WSSF_PATH . 'assets/search.css' ) ) {
+            wp_enqueue_style( 'wssf-search', \WSSF_URL . 'assets/search.css', [], \WSSF_VERSION );
         }
 
         $inline_js = ! $url_mode && $js !== '';
         if ( $inline_js ) {
-            wp_register_script( 'wssf-search', false, [ 'jquery' ], VERSION, true );
+            wp_register_script( 'wssf-search', false, [ 'jquery' ], \WSSF_VERSION, true );
             wp_enqueue_script( 'wssf-search' );
-        } elseif ( $url_mode && is_readable( PATH . 'assets/search.js' ) ) {
-            wp_register_script( 'wssf-search', URL . 'assets/search.js', [ 'jquery' ], VERSION, true );
+        } elseif ( $url_mode && is_readable( \WSSF_PATH . 'assets/search.js' ) ) {
+            wp_register_script( 'wssf-search', \WSSF_URL . 'assets/search.js', [ 'jquery' ], \WSSF_VERSION, true );
             wp_enqueue_script( 'wssf-search' );
         }
 
@@ -189,7 +189,7 @@ final class Assets {
     private function read_asset( string $relative_path ): string {
         $relative_path = ltrim( $relative_path, '/' );
         if ( $relative_path === '' || strpos( $relative_path, '..' ) !== false ) { return ''; }
-        $path = PATH . $relative_path;
+        $path = \WSSF_PATH . $relative_path;
         if ( ! is_readable( $path ) ) { return ''; }
         $content = @file_get_contents( $path );
         return is_string( $content ) ? $content : '';

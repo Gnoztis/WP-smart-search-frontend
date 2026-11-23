@@ -42,7 +42,7 @@ final class Admin_Diagnostics {
             $search_report = 'SEARCH_REPORT_ERROR: ' . self::detail( $e );
         }
 
-        $view = PATH . 'admin/view-diagnostics.php';
+        $view = \WSSF_PATH . 'admin/view-diagnostics.php';
         if ( file_exists( $view ) ) {
             $action_url = admin_url( 'admin-post.php' );
             require $view;
@@ -785,7 +785,7 @@ final class Admin_Diagnostics {
         $out = [];
         $out[] = '=== WSSF DIAGNOSTICS ===';
         $out[] = 'generated_at : ' . current_time( 'mysql' );
-        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? VERSION : '?' );
+        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? \WSSF_VERSION : '?' );
         $out[] = 'site_url     : ' . home_url( '/' );
         $out[] = '';
         $out[] = '# ENV';
@@ -809,7 +809,7 @@ final class Admin_Diagnostics {
         $out = [];
         $out[] = '=== WSSF DIAGNOSTICS ===';
         $out[] = 'generated_at : ' . current_time( 'mysql' );
-        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? VERSION : '?' );
+        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? \WSSF_VERSION : '?' );
         $out[] = 'site_url     : ' . home_url( '/' );
         $out[] = 'diag_enabled : ' . ( apply_filters( 'wssf_diag_enabled', false ) ? 'true' : 'false' );
         $out[] = '';
