@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -10,7 +13,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * - Проверка в tokenize(): после стемминга, чтобы стоп-слово было в стемм-форме.
  * - Кеш: Redis/transient по ключу wssf_sw_v1_{lang}, TTL 6ч.
  */
-final class WSSF_Stopwords {
+final class Stopwords {
 
     private const CACHE_TTL = 6 * HOUR_IN_SECONDS;
     private const LANGS     = [ 'ru', 'en' ];
@@ -36,7 +39,7 @@ final class WSSF_Stopwords {
         if ( $lang === '' ) { $lang = $this->detect_lang_from_query_context(); }
         if ( isset( $this->cache_mem[ $lang ] ) ) { return $this->cache_mem[ $lang ]; }
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $key   = 'wssf_sw_v1_' . $lang;
         $data  = $cache->get( $key );
         if ( is_array( $data ) && isset( $data['terms'] ) && is_array( $data['terms'] ) ) {
@@ -158,7 +161,7 @@ final class WSSF_Stopwords {
         if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table ) ) { return $counts; }
 
         foreach ( self::LANGS as $lang ) {
-            $path = WSSF_PATH . 'assets/stopwords/' . $lang . '.txt';
+            $path = PATH . 'assets/stopwords/' . $lang . '.txt';
             if ( ! is_readable( $path ) ) { $counts[ $lang ] = 0; continue; }
 
             $raw = @file_get_contents( $path );
@@ -176,7 +179,7 @@ final class WSSF_Stopwords {
 
                 // Стеммим стоп-слово, чтобы совпадало с токенами индекса.
                 try {
-                    $morph = new WSSF_Morphology();
+                    $morph = new Morphology();
                     $stem  = $morph->stem( $t, $lang );
                     if ( $stem === '' ) { $stem = $t; }
                 } catch ( \Throwable $e ) { $stem = $t; }
@@ -203,7 +206,7 @@ final class WSSF_Stopwords {
 
     public function flush_cache(): void {
         $this->cache_mem = [];
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->delete( 'wssf_sw_v1_ru' );
         $cache->delete( 'wssf_sw_v1_en' );
     }

@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -44,7 +47,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * is not corrected. That is deliberate: the dictionary has to stay bounded in
  * memory, and frequent words are the ones users actually misspell.
  */
-final class WSSF_Fuzzy_Index {
+final class Fuzzy_Index {
 
     private const DICT_CACHE_TTL  = 6 * HOUR_IN_SECONDS;
     private const BK_CACHE_TTL    = 6 * HOUR_IN_SECONDS;
@@ -72,7 +75,7 @@ final class WSSF_Fuzzy_Index {
     /** Dictionary memo for the current request (see get_dictionary()). */
     private ?array $dict_memo = null;
 
-    public function __construct( private WSSF_Cache $cache ) {}
+    public function __construct( private Cache $cache ) {}
 
     /**
      * Returns alternatives for the words of a query.

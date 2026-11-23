@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Admin_Diagnostics {
+final class Admin_Diagnostics {
 
     private static ?self $instance = null;
 
@@ -39,7 +42,7 @@ final class WSSF_Admin_Diagnostics {
             $search_report = 'SEARCH_REPORT_ERROR: ' . self::detail( $e );
         }
 
-        $view = WSSF_PATH . 'admin/view-diagnostics.php';
+        $view = PATH . 'admin/view-diagnostics.php';
         if ( file_exists( $view ) ) {
             $action_url = admin_url( 'admin-post.php' );
             require $view;
@@ -87,8 +90,8 @@ final class WSSF_Admin_Diagnostics {
             'index_count'          => 0,
             'index_total_posts'    => 0,
             'cleantalk_active'     => function_exists( 'apbct_base_call' ) ? 'yes' : 'no',
-            'cleantalk_mode'       => class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_cleantalk_mode() : 'auto',
-            'cleantalk_effective'  => ( class_exists( 'WSSF_CleanTalk' ) && WSSF_CleanTalk::active() ) ? 'yes' : 'no',
+            'cleantalk_mode'       => class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_cleantalk_mode() : 'auto',
+            'cleantalk_effective'  => ( class_exists( 'WSSF_CleanTalk' ) && CleanTalk::active() ) ? 'yes' : 'no',
             'cleantalk_key_ok'     => 'N/A',
             'cleantalk_cookies'    => 'N/A',
             'diag_enabled'         => (bool) apply_filters( 'wssf_diag_enabled', false ),
@@ -99,8 +102,8 @@ final class WSSF_Admin_Diagnostics {
 
         try {
             $env['theme_template'] = function_exists( 'get_template' ) ? (string) get_template() : '';
-            $plugin = WSSF_Plugin::instance();
-            if ( $plugin instanceof WSSF_Plugin ) {
+            $plugin = Plugin::instance();
+            if ( $plugin instanceof Plugin ) {
                 $env['theme_is_community'] = $plugin->security->is_community_theme() ? 'yes' : 'no';
                 $env['rate_limit']         = $plugin->security->effective_rate_limit();
             }
@@ -111,14 +114,14 @@ final class WSSF_Admin_Diagnostics {
         } catch ( \Throwable $e ) { /* ignore */ }
 
         try {
-            $plugin = WSSF_Plugin::instance();
-            if ( $plugin instanceof WSSF_Plugin ) {
+            $plugin = Plugin::instance();
+            if ( $plugin instanceof Plugin ) {
                 $env['cache_generation']     = $plugin->cache->generation();
                 $env['redis_server_version'] = $plugin->cache->redis_server_version();
             }
-            $env['cache_backend']        = WSSF_Cache::backend();
-            $env['cache_backoff']        = max( 0, WSSF_Cache::backoff_until() - time() );
-            $env['redis_client_version'] = WSSF_Cache::redis_client_version();
+            $env['cache_backend']        = Cache::backend();
+            $env['cache_backoff']        = max( 0, Cache::backoff_until() - time() );
+            $env['redis_client_version'] = Cache::redis_client_version();
         } catch ( \Throwable $e ) { /* ignore */ }
 
         try {
@@ -149,7 +152,7 @@ final class WSSF_Admin_Diagnostics {
 
     public function handle_run(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'diagnostics' );
+            Security::log_event( 'cap_denied', 'diagnostics' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_diag_run' );
@@ -184,7 +187,7 @@ final class WSSF_Admin_Diagnostics {
 
     public function handle_search_test(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'diagnostics' );
+            Security::log_event( 'cap_denied', 'diagnostics' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_diag_search' );
@@ -263,13 +266,13 @@ final class WSSF_Admin_Diagnostics {
             );
         } catch ( \Throwable $e ) { /* ignore */ }
 
-        $plugin = WSSF_Plugin::instance();
-        if ( ! $plugin instanceof WSSF_Plugin ) {
+        $plugin = Plugin::instance();
+        if ( ! $plugin instanceof Plugin ) {
             $out['error'] = 'WSSF_Plugin not initialized';
             return $out;
         }
 
-        $out['sanitized'] = WSSF_Query_Parser::sanitize( $query );
+        $out['sanitized'] = Query_Parser::sanitize( $query );
         $groups = $plugin->parser->parse( $query, true );
         if ( is_wp_error( $groups ) ) {
             $out['error'] = $groups->get_error_message();
@@ -277,7 +280,7 @@ final class WSSF_Admin_Diagnostics {
         }
         $out['parsed_groups'] = $groups;
 
-        $tokenizer = new WSSF_Tokenizer( new WSSF_Morphology() );
+        $tokenizer = new Tokenizer( new Morphology() );
         $flat = [];
         foreach ( $groups as $group ) {
             foreach ( $group as $tok ) {
@@ -612,7 +615,7 @@ final class WSSF_Admin_Diagnostics {
         if ( ! function_exists( 'apbct_base_call' ) ) {
             return [ 'error' => 'CleanTalk не обнаружен — тест недоступен' ];
         }
-        if ( ! WSSF_CleanTalk::active() ) {
+        if ( ! CleanTalk::active() ) {
             return [ 'error' => 'Проверка CleanTalk выключена режимом «выключена» — тест не выполняется' ];
         }
         $scenarios = [
@@ -782,7 +785,7 @@ final class WSSF_Admin_Diagnostics {
         $out = [];
         $out[] = '=== WSSF DIAGNOSTICS ===';
         $out[] = 'generated_at : ' . current_time( 'mysql' );
-        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? WSSF_VERSION : '?' );
+        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? VERSION : '?' );
         $out[] = 'site_url     : ' . home_url( '/' );
         $out[] = '';
         $out[] = '# ENV';
@@ -806,7 +809,7 @@ final class WSSF_Admin_Diagnostics {
         $out = [];
         $out[] = '=== WSSF DIAGNOSTICS ===';
         $out[] = 'generated_at : ' . current_time( 'mysql' );
-        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? WSSF_VERSION : '?' );
+        $out[] = 'version      : ' . ( defined( 'WSSF_VERSION' ) ? VERSION : '?' );
         $out[] = 'site_url     : ' . home_url( '/' );
         $out[] = 'diag_enabled : ' . ( apply_filters( 'wssf_diag_enabled', false ) ? 'true' : 'false' );
         $out[] = '';

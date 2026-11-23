@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -12,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *
  * Всё кешируется в WSSF_Cache. Никаких сетевых вызовов.
  */
-final class WSSF_Semantic_Search {
+final class Semantic_Search {
 
     private const SYNONYM_CACHE_TTL = HOUR_IN_SECONDS;
     private const PRF_CACHE_TTL     = HOUR_IN_SECONDS;
@@ -22,15 +25,15 @@ final class WSSF_Semantic_Search {
     private const SYNONYM_MIN_COUNT = 3;
     private const SYNONYM_MAX_POSTS = 200;
 
-    private WSSF_PRF_Expander $prf;
-    private WSSF_Fuzzy_Index  $fuzzy;
+    private PRF_Expander $prf;
+    private Fuzzy_Index  $fuzzy;
 
     public function __construct(
-        private WSSF_Cache $cache,
-        private WSSF_Tokenizer $tokenizer
+        private Cache $cache,
+        private Tokenizer $tokenizer
     ) {
-        $this->prf   = new WSSF_PRF_Expander( $tokenizer );
-        $this->fuzzy = new WSSF_Fuzzy_Index( $cache );
+        $this->prf   = new PRF_Expander( $tokenizer );
+        $this->fuzzy = new Fuzzy_Index( $cache );
     }
 
     public function is_enabled(): bool {

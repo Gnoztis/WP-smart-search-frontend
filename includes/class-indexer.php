@@ -1,17 +1,20 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Indexer {
+final class Indexer {
 
     /** Сколько term'ов класть в один batch INSERT/UPDATE. */
     private const TERMS_BATCH_CHUNK = 500;
 
-    private WSSF_Tokenizer $tokenizer;
+    private Tokenizer $tokenizer;
     private string $table;
     private string $terms_table;
 
-    public function __construct( WSSF_Tokenizer $tokenizer ) {
+    public function __construct( Tokenizer $tokenizer ) {
         global $wpdb;
         $table = (string) $wpdb->prefix . 'wssf_index';
         if ( ! preg_match( '/^[a-zA-Z0-9_]+$/', $table ) ) { $table = 'wp_wssf_index'; }
@@ -109,7 +112,7 @@ final class WSSF_Indexer {
 
     public function count_all_posts(): int {
         global $wpdb;
-        $post_types = WSSF_Search_Engine::get_post_types();
+        $post_types = Search_Engine::get_post_types();
         if ( empty( $post_types ) ) { return 0; }
         $ph  = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
         $sql = $wpdb->prepare(
@@ -121,7 +124,7 @@ final class WSSF_Indexer {
 
     public function count_missing_posts(): int {
         global $wpdb;
-        $post_types = WSSF_Search_Engine::get_post_types();
+        $post_types = Search_Engine::get_post_types();
         if ( empty( $post_types ) ) { return 0; }
         $ph  = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
         $sql = $wpdb->prepare(
@@ -135,7 +138,7 @@ final class WSSF_Indexer {
 
     public function get_all_post_ids( int $offset, int $limit ): array {
         global $wpdb;
-        $post_types = WSSF_Search_Engine::get_post_types();
+        $post_types = Search_Engine::get_post_types();
         if ( empty( $post_types ) ) { return []; }
         $ph     = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
         $params = array_merge( $post_types, [ $limit, $offset ] );
@@ -150,7 +153,7 @@ final class WSSF_Indexer {
 
     public function get_missing_post_ids( int $limit ): array {
         global $wpdb;
-        $post_types = WSSF_Search_Engine::get_post_types();
+        $post_types = Search_Engine::get_post_types();
         if ( empty( $post_types ) ) { return []; }
         $ph     = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
         $params = array_merge( $post_types, [ $limit ] );
@@ -170,7 +173,7 @@ final class WSSF_Indexer {
         $post = get_post( $post_id );
         if ( ! $post instanceof \WP_Post ) { $this->delete_post( $post_id ); return false; }
         if ( $post->post_status !== 'publish' ) { $this->delete_post( $post_id ); return false; }
-        if ( ! in_array( $post->post_type, WSSF_Search_Engine::get_post_types(), true ) ) {
+        if ( ! in_array( $post->post_type, Search_Engine::get_post_types(), true ) ) {
             $this->delete_post( $post_id );
             return false;
         }
@@ -186,7 +189,7 @@ final class WSSF_Indexer {
 
         if ( class_exists( 'WSSF_Yara' ) ) {
             try {
-                $yara = new WSSF_Yara();
+                $yara = new Yara();
                 if ( $yara->is_enabled() ) {
                     $yara_tokens = $yara->build_index_tokens( $content );
                     if ( ! empty( $yara_tokens ) ) {
@@ -216,7 +219,7 @@ final class WSSF_Indexer {
 
         try {
             if ( class_exists( 'WSSF_IOC_Map' ) ) {
-                $ioc_map = new WSSF_IOC_Map( WSSF_Plugin::instance()->cache );
+                $ioc_map = new IOC_Map( Plugin::instance()->cache );
                 if ( $ioc_map->is_enabled() ) {
                     $ioc_values = $this->extract_ioc_values(
                         (string) $post->post_title . ' ' . $content . ' ' . $tags_text
@@ -228,7 +231,7 @@ final class WSSF_Indexer {
 
         try {
             if ( class_exists( 'WSSF_MinHash' ) ) {
-                $mh = new WSSF_MinHash( WSSF_Plugin::instance()->cache );
+                $mh = new MinHash( Plugin::instance()->cache );
                 if ( $mh->is_enabled() ) {
                     $combined_tokens = array_values( array_unique( array_merge( $content_tokens, $title_tokens ) ) );
                     $mh->update_for_post( $post_id, $combined_tokens );
@@ -271,14 +274,14 @@ final class WSSF_Indexer {
 
         try {
             if ( class_exists( 'WSSF_IOC_Map' ) ) {
-                $ioc_map = new WSSF_IOC_Map( WSSF_Plugin::instance()->cache );
+                $ioc_map = new IOC_Map( Plugin::instance()->cache );
                 $ioc_map->delete_for_post( $post_id );
             }
         } catch ( \Throwable $e ) {}
 
         try {
             if ( class_exists( 'WSSF_MinHash' ) ) {
-                $mh = new WSSF_MinHash( WSSF_Plugin::instance()->cache );
+                $mh = new MinHash( Plugin::instance()->cache );
                 $mh->delete_for_post( $post_id );
             }
         } catch ( \Throwable $e ) {}
@@ -373,7 +376,7 @@ final class WSSF_Indexer {
     }
 
     public static function classify_term( string $term ): string {
-        if ( class_exists( 'WSSF_Yara' ) && WSSF_Yara::is_yara_token( $term ) ) {
+        if ( class_exists( 'WSSF_Yara' ) && Yara::is_yara_token( $term ) ) {
             return strpos( $term, 'yaratag:' ) === 0 ? 'yaratag' : 'yara';
         }
         $patterns = [
@@ -403,7 +406,7 @@ final class WSSF_Indexer {
 
     public function reindex_all(): int {
         global $wpdb;
-        $post_types = WSSF_Search_Engine::get_post_types();
+        $post_types = Search_Engine::get_post_types();
         if ( empty( $post_types ) ) { return 0; }
         $ph = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
         $sql = $wpdb->prepare(

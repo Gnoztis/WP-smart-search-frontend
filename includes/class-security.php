@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -21,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * the chain is walked from the right, so a value the client put into
  * X-Forwarded-For itself is never trusted.
  */
-final class WSSF_Security {
+final class Security {
 
     private const RATE_LIMIT_GUEST  = 30;
     private const RATE_LIMIT_WINDOW = 60;
@@ -57,16 +60,16 @@ final class WSSF_Security {
     /** Theme detection result of the current request; see is_community_theme(). */
     private static ?bool $community_theme = null;
 
-    public function __construct( private WSSF_Cache $cache ) {}
+    public function __construct( private Cache $cache ) {}
 
     public function verify_request(): bool {
         $xrw = strtolower( $this->server_string( 'HTTP_X_REQUESTED_WITH' ) );
 
-        $nonce = isset( $_POST[ WSSF_Plugin::NONCE_FIELD ] ) && is_string( $_POST[ WSSF_Plugin::NONCE_FIELD ] )
-            ? sanitize_text_field( wp_unslash( $_POST[ WSSF_Plugin::NONCE_FIELD ] ) ) : '';
+        $nonce = isset( $_POST[ Plugin::NONCE_FIELD ] ) && is_string( $_POST[ Plugin::NONCE_FIELD ] )
+            ? sanitize_text_field( wp_unslash( $_POST[ Plugin::NONCE_FIELD ] ) ) : '';
 
         if ( $xrw === 'xmlhttprequest' ) {
-            if ( ! check_ajax_referer( WSSF_Plugin::NONCE_ACTION, WSSF_Plugin::NONCE_FIELD, false ) ) {
+            if ( ! check_ajax_referer( Plugin::NONCE_ACTION, Plugin::NONCE_FIELD, false ) ) {
                 return false;
             }
             $site_host = wp_parse_url( home_url(), PHP_URL_HOST );
@@ -84,7 +87,7 @@ final class WSSF_Security {
             return strcasecmp( $site_host, $source_host ) === 0;
         }
 
-        return $nonce !== '' && (bool) wp_verify_nonce( $nonce, WSSF_Plugin::NONCE_ACTION );
+        return $nonce !== '' && (bool) wp_verify_nonce( $nonce, Plugin::NONCE_ACTION );
     }
 
     /**

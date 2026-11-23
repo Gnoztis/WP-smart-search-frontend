@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Assets {
+final class Assets {
 
     private const CSS_MODULES = [
         'assets/css/wssf-variables.css',
@@ -44,7 +47,7 @@ final class WSSF_Assets {
         'assets/js/wssf-mobile.js',
     ];
 
-    public function __construct( private WSSF_Initial_State $initial ) {}
+    public function __construct( private Initial_State $initial ) {}
 
     public function enqueue_assets(): void {
         if ( ! is_search() ) { return; }
@@ -56,44 +59,44 @@ final class WSSF_Assets {
 
         $inline_css = ! $url_mode && $css !== '';
         if ( $inline_css ) {
-            wp_register_style( 'wssf-search', false, [], WSSF_VERSION );
+            wp_register_style( 'wssf-search', false, [], VERSION );
             wp_enqueue_style( 'wssf-search' );
             wp_add_inline_style( 'wssf-search', $css );
-        } elseif ( $url_mode && is_readable( WSSF_PATH . 'assets/search.css' ) ) {
-            wp_enqueue_style( 'wssf-search', WSSF_URL . 'assets/search.css', [], WSSF_VERSION );
+        } elseif ( $url_mode && is_readable( PATH . 'assets/search.css' ) ) {
+            wp_enqueue_style( 'wssf-search', URL . 'assets/search.css', [], VERSION );
         }
 
         $inline_js = ! $url_mode && $js !== '';
         if ( $inline_js ) {
-            wp_register_script( 'wssf-search', false, [ 'jquery' ], WSSF_VERSION, true );
+            wp_register_script( 'wssf-search', false, [ 'jquery' ], VERSION, true );
             wp_enqueue_script( 'wssf-search' );
-        } elseif ( $url_mode && is_readable( WSSF_PATH . 'assets/search.js' ) ) {
-            wp_register_script( 'wssf-search', WSSF_URL . 'assets/search.js', [ 'jquery' ], WSSF_VERSION, true );
+        } elseif ( $url_mode && is_readable( PATH . 'assets/search.js' ) ) {
+            wp_register_script( 'wssf-search', URL . 'assets/search.js', [ 'jquery' ], VERSION, true );
             wp_enqueue_script( 'wssf-search' );
         }
 
         if ( $css === '' && $js === '' ) { return; }
 
-        $dym_on     = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::is_did_you_mean_enabled() : true;
-        $sug_on     = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::is_suggestions_enabled() : true;
-        $history_on = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::is_history_enabled() : true;
-        $ac_on      = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::is_autocomplete_enabled() : true;
-        $ac_min     = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_autocomplete_min_len() : 2;
+        $dym_on     = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_did_you_mean_enabled() : true;
+        $sug_on     = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_suggestions_enabled() : true;
+        $history_on = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_history_enabled() : true;
+        $ac_on      = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_autocomplete_enabled() : true;
+        $ac_min     = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_autocomplete_min_len() : 2;
 
         $data = [
             'ajaxUrl'              => admin_url( 'admin-ajax.php' ),
-            'nonce'                => wp_create_nonce( WSSF_Plugin::NONCE_ACTION ),
-            'action'               => WSSF_Plugin::AJAX_ACTION,
-            'suggestAction'        => WSSF_Plugin::SUGGEST_ACTION,
+            'nonce'                => wp_create_nonce( Plugin::NONCE_ACTION ),
+            'action'               => Plugin::AJAX_ACTION,
+            'suggestAction'        => Plugin::SUGGEST_ACTION,
             'autocompleteEnabled'  => (bool) $ac_on,
             'autocompleteMinLen'   => (int) $ac_min,
-            'minLen'               => WSSF_Plugin::get_min_len(),
+            'minLen'               => Plugin::get_min_len(),
             'initialQuery'         => $this->initial->get_query(),
             'initialCat'           => $this->initial->get_cat(),
             'initialType'          => $this->initial->get_type(),
             'initialTags'          => $this->initial->get_tags(),
             'initialExcludeTags'   => $this->initial->get_exclude_tags(),
-            'allowedPostTypes'     => WSSF_Search_Engine::get_post_types(),
+            'allowedPostTypes'     => Search_Engine::get_post_types(),
             'userId'               => get_current_user_id(),
             'pageUrl'              => home_url( '/' ),
             'isLoggedIn'           => is_user_logged_in(),
@@ -186,7 +189,7 @@ final class WSSF_Assets {
     private function read_asset( string $relative_path ): string {
         $relative_path = ltrim( $relative_path, '/' );
         if ( $relative_path === '' || strpos( $relative_path, '..' ) !== false ) { return ''; }
-        $path = WSSF_PATH . $relative_path;
+        $path = PATH . $relative_path;
         if ( ! is_readable( $path ) ) { return ''; }
         $content = @file_get_contents( $path );
         return is_string( $content ) ? $content : '';

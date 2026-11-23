@@ -1,9 +1,11 @@
 <?php
 declare(strict_types=1);
 
+
+namespace WSSF;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Excerpt {
+final class Excerpt {
 
     public function make( string $content, array $words ): string {
         $content = trim( preg_replace( '/\s+/u', ' ', $content ) );

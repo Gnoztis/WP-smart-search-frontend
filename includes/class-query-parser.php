@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Query_Parser {
+final class Query_Parser {
 
     public const MIN_LEN       = 3;
     public const MIN_WORD_LEN  = 3;
@@ -10,9 +13,9 @@ final class WSSF_Query_Parser {
     public const MAX_WORDS     = 10;
     public const MAX_WORD_LEN  = 100;
 
-    private WSSF_Tokenizer $tokenizer;
+    private Tokenizer $tokenizer;
 
-    public function __construct( WSSF_Tokenizer $tokenizer ) {
+    public function __construct( Tokenizer $tokenizer ) {
         $this->tokenizer = $tokenizer;
     }
 
@@ -136,7 +139,7 @@ final class WSSF_Query_Parser {
     public function parse_post_type( $value ): string {
         if ( ! is_string( $value ) ) { return ''; }
         $pt = sanitize_key( $value );
-        if ( ! in_array( $pt, WSSF_Search_Engine::get_post_types(), true ) ) { return ''; }
+        if ( ! in_array( $pt, Search_Engine::get_post_types(), true ) ) { return ''; }
         return $pt;
     }
 }

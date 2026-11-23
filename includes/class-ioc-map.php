@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -12,14 +15,14 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *   - «Связанные IOC» на карточке поста;
  *   - «Похожие запросы» на странице результатов.
  */
-final class WSSF_IOC_Map {
+final class IOC_Map {
 
     private const MAX_IOC_PER_POST = 500;
     private const COC_CACHE_TTL    = HOUR_IN_SECONDS;
     private const COC_MAX_RESULTS  = 10;
     private const COC_MIN_POSTS    = 1;
 
-    public function __construct( private WSSF_Cache $cache ) {}
+    public function __construct( private Cache $cache ) {}
 
     public function table(): ?string {
         global $wpdb;
@@ -64,7 +67,7 @@ final class WSSF_IOC_Map {
                 $type = (string) $item['type'];
             } else {
                 $val  = (string) $item;
-                $type = WSSF_Indexer::classify_term( $val );
+                $type = Indexer::classify_term( $val );
             }
             if ( $val === '' || $type === 'word' ) { continue; }
             if ( mb_strlen( $val ) > 200 ) { continue; }

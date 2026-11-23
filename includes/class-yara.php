@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -15,7 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *
  * Автодополнение: тип "yara" — имена правил участвуют в prefix-scan.
  */
-final class WSSF_Yara {
+final class Yara {
 
     private const MAX_RULES_PER_POST = 50;
 

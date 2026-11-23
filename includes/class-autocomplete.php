@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -15,13 +18,13 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *
  * Всё кешируется в WSSF_Cache (Redis/transient) на 5 минут.
  */
-final class WSSF_Autocomplete {
+final class Autocomplete {
 
     private const CACHE_TTL = 300;
 
     public function __construct(
-        private WSSF_Cache $cache,
-        private WSSF_Tokenizer $tokenizer
+        private Cache $cache,
+        private Tokenizer $tokenizer
     ) {}
 
     public function is_enabled(): bool {
@@ -41,7 +44,7 @@ final class WSSF_Autocomplete {
      */
     public function suggest( string $q ): array {
         if ( ! $this->is_enabled() ) { return []; }
-        $q = WSSF_Query_Parser::sanitize( $q );
+        $q = Query_Parser::sanitize( $q );
         if ( mb_strlen( $q ) < $this->get_min_len() ) { return []; }
 
         $cache_key = 'wssf_ac_v1_' . md5( mb_strtolower( $q ) );
@@ -116,7 +119,7 @@ final class WSSF_Autocomplete {
     private function find_fuzzy_matches( string $q, int $limit ): array {
         if ( ! class_exists( 'WSSF_Fuzzy_Index' ) ) { return []; }
         try {
-            $fuzzy = new WSSF_Fuzzy_Index( $this->cache );
+            $fuzzy = new Fuzzy_Index( $this->cache );
             $alts  = $fuzzy->find_alternatives( [ $q ], $limit );
         } catch ( \Throwable $e ) { return []; }
         if ( ! is_array( $alts ) ) { return []; }
@@ -127,7 +130,7 @@ final class WSSF_Autocomplete {
             if ( $term === '' ) { continue; }
             $items[] = [
                 'term'  => $term,
-                'type'  => WSSF_Indexer::classify_term( $term ),
+                'type'  => Indexer::classify_term( $term ),
                 'count' => 0,
             ];
         }

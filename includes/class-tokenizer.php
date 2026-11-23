@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Tokenizer {
+final class Tokenizer {
 
     private const IOC_PATTERNS = [
         '/(?:https?|ftp):\/\/[^\s<>"\']+/iu',
@@ -43,12 +46,12 @@ final class WSSF_Tokenizer {
     /** Быстрая проверка на уровне токена: есть ли цифра или спецсимвол (IOC-признак). */
     private const IOC_TOKEN_HINT_REGEX = '/[0-9]|[:@._\-\/]/';
 
-    private WSSF_Morphology $morphology;
+    private Morphology $morphology;
 
     /** Кеш стоп-слов на время жизни экземпляра (обычно один запрос). */
     private ?array $stopwords_cache = null;
 
-    public function __construct( WSSF_Morphology $morphology ) {
+    public function __construct( Morphology $morphology ) {
         $this->morphology = $morphology;
     }
 
@@ -126,7 +129,7 @@ final class WSSF_Tokenizer {
         if ( $token === '' ) { return false; }
 
         // YARA-токены — быстрая проверка вперёд.
-        if ( class_exists( 'WSSF_Yara' ) && WSSF_Yara::is_yara_token( $token ) ) {
+        if ( class_exists( 'WSSF_Yara' ) && Yara::is_yara_token( $token ) ) {
             return true;
         }
 
@@ -145,7 +148,7 @@ final class WSSF_Tokenizer {
     public function groups_to_boolean_string( array $groups ): string {
         $synonyms = [];
         if ( class_exists( 'WSSF_Admin_Settings' ) && method_exists( 'WSSF_Admin_Settings', 'get_synonyms' ) ) {
-            $synonyms = WSSF_Admin_Settings::get_synonyms();
+            $synonyms = Admin_Settings::get_synonyms();
         }
 
         $parts = [];
@@ -211,7 +214,7 @@ final class WSSF_Tokenizer {
             return [];
         }
         try {
-            $sw = WSSF_Stopwords::instance();
+            $sw = Stopwords::instance();
             $this->stopwords_cache = $sw->is_enabled() ? $sw->get_all() : [];
         } catch ( \Throwable $e ) {
             $this->stopwords_cache = [];

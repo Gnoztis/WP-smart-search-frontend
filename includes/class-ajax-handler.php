@@ -1,16 +1,19 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Ajax_Handler {
+final class Ajax_Handler {
 
     public function __construct(
-        private WSSF_Query_Parser $parser,
-        private WSSF_Search_Engine $engine,
-        private WSSF_CleanTalk $cleantalk,
-        private WSSF_Security $security,
-        private WSSF_Layout_Corrector $corrector,
-        private ?WSSF_Autocomplete $autocomplete = null
+        private Query_Parser $parser,
+        private Search_Engine $engine,
+        private CleanTalk $cleantalk,
+        private Security $security,
+        private Layout_Corrector $corrector,
+        private ?Autocomplete $autocomplete = null
     ) {}
 
     public function handle(): void {
@@ -23,7 +26,7 @@ final class WSSF_Ajax_Handler {
             wp_send_json_error( [ 'message' => __( 'Метод не разрешён.', 'wp-smart-search-frontend' ) ], 405 );
         }
         if ( ! $this->security->verify_request() ) {
-            WSSF_Security::log_event( 'nonce_failed', 'ajax:search' );
+            Security::log_event( 'nonce_failed', 'ajax:search' );
             wp_send_json_error( [ 'code' => 'wssf_bad_nonce', 'message' => __( 'Доступ запрещён.', 'wp-smart-search-frontend' ) ], 403 );
         }
         if ( ! $this->security->rate_limit_ok() ) {
@@ -44,7 +47,7 @@ final class WSSF_Ajax_Handler {
         if ( ! is_string( $raw ) ) {
             wp_send_json_error( [ 'message' => __( 'Некорректный запрос.', 'wp-smart-search-frontend' ) ], 400 );
         }
-        $raw = WSSF_Query_Parser::sanitize( $raw );
+        $raw = Query_Parser::sanitize( $raw );
 
         $page   = isset( $_POST['page'] ) ? max( 1, absint( $_POST['page'] ) ) : 1;
         $cat_id = isset( $_POST['cat'] ) ? absint( $_POST['cat'] ) : 0;
@@ -98,7 +101,7 @@ final class WSSF_Ajax_Handler {
 
             $posts_total = isset( $posts_result['total'] ) ? (int) $posts_result['total'] : 0;
 
-            $dym_enabled = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::is_did_you_mean_enabled() : true;
+            $dym_enabled = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_did_you_mean_enabled() : true;
             if ( $posts_total === 0 && $raw !== '' && $dym_enabled ) {
                 try {
                     $suggestion = $this->build_suggestion( $raw, $cat_id, $post_type_filter, $tag_ids, $exclude_tag_ids );
@@ -144,11 +147,11 @@ final class WSSF_Ajax_Handler {
     public function handle_history(): void {
         nocache_headers();
         if ( ! is_user_logged_in() ) { wp_send_json_error( [ 'message' => 'Auth required' ], 403 ); }
-        if ( ! check_ajax_referer( WSSF_Plugin::NONCE_ACTION, 'nonce', false ) ) {
-            WSSF_Security::log_event( 'nonce_failed', 'ajax:history' );
+        if ( ! check_ajax_referer( Plugin::NONCE_ACTION, 'nonce', false ) ) {
+            Security::log_event( 'nonce_failed', 'ajax:history' );
             wp_send_json_error( [ 'code' => 'wssf_bad_nonce', 'message' => 'Bad nonce' ], 403 );
         }
-        if ( class_exists( 'WSSF_Admin_Settings' ) && ! WSSF_Admin_Settings::is_history_enabled() ) {
+        if ( class_exists( 'WSSF_Admin_Settings' ) && ! Admin_Settings::is_history_enabled() ) {
             wp_send_json_error( [ 'message' => 'History disabled' ], 403 );
         }
         $user_id = get_current_user_id();
@@ -164,7 +167,7 @@ final class WSSF_Ajax_Handler {
                 if ( ! is_array( $item ) ) { continue; }
                 $tags  = isset( $item['tags'] )  && is_array( $item['tags'] )  ? array_values( array_filter( array_map( 'absint', array_slice( $item['tags'],  0, 50 ) ) ) ) : [];
                 $xtags = isset( $item['xtags'] ) && is_array( $item['xtags'] ) ? array_values( array_filter( array_map( 'absint', array_slice( $item['xtags'], 0, 50 ) ) ) ) : [];
-                $q = isset( $item['query'] ) ? WSSF_Query_Parser::sanitize( (string) $item['query'] ) : '';
+                $q = isset( $item['query'] ) ? Query_Parser::sanitize( (string) $item['query'] ) : '';
                 if ( mb_strlen( $q ) > 100 ) { $q = mb_substr( $q, 0, 100 ); }
                 $clean[] = [
                     'query' => $q, 'cat' => isset( $item['cat'] ) ? absint( $item['cat'] ) : 0,
@@ -191,7 +194,7 @@ final class WSSF_Ajax_Handler {
         nocache_headers();
         if ( ! wp_doing_ajax() ) { wp_send_json_error( [ 'message' => 'Invalid context' ], 400 ); }
         if ( ! $this->security->verify_request() ) {
-            WSSF_Security::log_event( 'nonce_failed', 'ajax:suggest' );
+            Security::log_event( 'nonce_failed', 'ajax:suggest' );
             wp_send_json_error( [ 'code' => 'wssf_bad_nonce', 'message' => 'Forbidden' ], 403 );
         }
         if ( ! $this->security->rate_limit_ok() ) { wp_send_json_error( [ 'message' => 'Too many requests' ], 429 ); }
@@ -201,7 +204,7 @@ final class WSSF_Ajax_Handler {
         // string parameter would be a TypeError and end the request with a
         // PHP fatal error on a public endpoint.
         $raw_q = isset( $_POST['q'] ) ? wp_unslash( $_POST['q'] ) : '';
-        $q     = is_string( $raw_q ) ? WSSF_Query_Parser::sanitize( $raw_q ) : '';
+        $q     = is_string( $raw_q ) ? Query_Parser::sanitize( $raw_q ) : '';
         if ( $q === '' ) { wp_send_json_success( [ 'items' => [], 'query' => '' ] ); }
 
         try { $items = $this->autocomplete->suggest( $q ); }

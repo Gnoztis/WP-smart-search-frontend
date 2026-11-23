@@ -1,20 +1,23 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Hooks {
+final class Hooks {
 
     private static ?self $instance = null;
 
     public const CRON_HOOK            = 'wssf_cron_reindex';
     public const INDEX_ASYNC_HOOK     = 'wssf_index_single_post';
 
-    public static function instance( WSSF_Plugin $plugin ): self {
+    public static function instance( Plugin $plugin ): self {
         if ( self::$instance === null ) { self::$instance = new self( $plugin ); }
         return self::$instance;
     }
 
-    private function __construct( private WSSF_Plugin $plugin ) {}
+    private function __construct( private Plugin $plugin ) {}
 
     public function register(): void {
         add_filter( 'template_include', [ $this, 'template_include' ], 99 );
@@ -22,10 +25,10 @@ final class WSSF_Hooks {
         add_action( 'wp_head', [ $this, 'expert_review_shim' ], 1 );
         add_action( 'wp_head', [ $this, 'head_layout_fixes' ], 99 );
 
-        add_action( 'wp_ajax_' . WSSF_Plugin::AJAX_ACTION,        [ $this->plugin->ajax, 'handle' ] );
-        add_action( 'wp_ajax_nopriv_' . WSSF_Plugin::AJAX_ACTION, [ $this->plugin->ajax, 'handle' ] );
-        add_action( 'wp_ajax_' . WSSF_Plugin::SUGGEST_ACTION,        [ $this->plugin->ajax, 'handle_suggest' ] );
-        add_action( 'wp_ajax_nopriv_' . WSSF_Plugin::SUGGEST_ACTION, [ $this->plugin->ajax, 'handle_suggest' ] );
+        add_action( 'wp_ajax_' . Plugin::AJAX_ACTION,        [ $this->plugin->ajax, 'handle' ] );
+        add_action( 'wp_ajax_nopriv_' . Plugin::AJAX_ACTION, [ $this->plugin->ajax, 'handle' ] );
+        add_action( 'wp_ajax_' . Plugin::SUGGEST_ACTION,        [ $this->plugin->ajax, 'handle_suggest' ] );
+        add_action( 'wp_ajax_nopriv_' . Plugin::SUGGEST_ACTION, [ $this->plugin->ajax, 'handle_suggest' ] );
         add_action( 'wp_ajax_wssf_history', [ $this->plugin->ajax, 'handle_history' ] );
 
         add_filter( 'get_search_form', [ $this->plugin->cleantalk, 'add_fields_to_search_form' ], 99 );
@@ -54,7 +57,7 @@ final class WSSF_Hooks {
 
         // Security headers
         if ( class_exists( 'WSSF_Security_Headers' ) ) {
-            ( new WSSF_Security_Headers() )->register();
+            ( new Security_Headers() )->register();
         }
     }
 
@@ -95,7 +98,7 @@ final class WSSF_Hooks {
     public function run_cron_reindex(): void {
         try {
             $batch_size = max( 50, min( 2000, (int) get_option( 'wssf_cron_batch_size', 500 ) ) );
-            $indexer    = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+            $indexer    = new Indexer( new Tokenizer( new Morphology() ) );
             $result     = $indexer->reindex_missing_cron( $batch_size );
 
             update_option( 'wssf_cron_last_run', current_time( 'mysql' ), true );
@@ -143,7 +146,7 @@ final class WSSF_Hooks {
     public function template_include( $template ) {
         if ( is_admin() || ! is_search() ) { return $template; }
         $this->plugin->cleantalk->check_search_get_request();
-        $custom = WSSF_PATH . 'templates/search.php';
+        $custom = PATH . 'templates/search.php';
         return file_exists( $custom ) ? $custom : $template;
     }
 
@@ -173,7 +176,7 @@ final class WSSF_Hooks {
         if ( wp_is_post_revision( $post_id ) || wp_is_post_autosave( $post_id ) ) { return; }
         if ( ! $post instanceof \WP_Post ) { $post = get_post( $post_id ); }
         if ( ! $post instanceof \WP_Post ) { return; }
-        if ( ! in_array( $post->post_type, WSSF_Search_Engine::get_post_types(), true ) ) { return; }
+        if ( ! in_array( $post->post_type, Search_Engine::get_post_types(), true ) ) { return; }
         $this->plugin->cache->bump_generation();
     }
 
@@ -187,7 +190,7 @@ final class WSSF_Hooks {
         ) );
         if ( ! is_array( $post_ids ) ) { return; }
         if ( count( $post_ids ) > 500 ) { return; }
-        $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+        $indexer = new Indexer( new Tokenizer( new Morphology() ) );
         foreach ( $post_ids as $pid ) { $indexer->index_post( (int) $pid ); }
     }
 
@@ -219,7 +222,7 @@ final class WSSF_Hooks {
         }
 
         try {
-            $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+            $indexer = new Indexer( new Tokenizer( new Morphology() ) );
             $indexer->index_post( $post_id );
         } catch ( \Throwable $e ) {
             if ( defined( 'WP_DEBUG' ) && WP_DEBUG && function_exists( 'error_log' ) ) {
@@ -234,7 +237,7 @@ final class WSSF_Hooks {
         if ( $post_id <= 0 ) { return; }
 
         try {
-            $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+            $indexer = new Indexer( new Tokenizer( new Morphology() ) );
             $indexer->index_post( $post_id );
             $this->plugin->cache->delete( 'wssf_index_count' );
         } catch ( \Throwable $e ) {
@@ -246,7 +249,7 @@ final class WSSF_Hooks {
 
     public function on_delete_post_index( $post_id ): void {
         try {
-            $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+            $indexer = new Indexer( new Tokenizer( new Morphology() ) );
             $indexer->delete_post( (int) $post_id );
         } catch ( \Throwable $e ) {}
     }
@@ -256,7 +259,7 @@ final class WSSF_Hooks {
     }
 
     public function run_migrations(): void {
-        WSSF_Migrations::run();
+        Migrations::run();
     }
 
     public function on_user_logout( $user_id ): void {

@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_CleanTalk {
+final class CleanTalk {
 
     /** Detection result of the current request; see is_available(). */
     private static ?bool $available = null;
@@ -23,8 +26,8 @@ final class WSSF_CleanTalk {
     private const API_RATE_WINDOW = MINUTE_IN_SECONDS;
 
     public function __construct(
-        private WSSF_Cache $cache,
-        private WSSF_Security $security
+        private Cache $cache,
+        private Security $security
     ) {}
 
     /* ============================================================
@@ -61,7 +64,7 @@ final class WSSF_CleanTalk {
      */
     public static function is_enabled(): bool {
         $mode = class_exists( 'WSSF_Admin_Settings' )
-            ? WSSF_Admin_Settings::get_cleantalk_mode()
+            ? Admin_Settings::get_cleantalk_mode()
             : 'auto';
 
         if ( $mode === 'off' ) { return false; }
@@ -84,7 +87,7 @@ final class WSSF_CleanTalk {
      */
     public static function state(): array {
         return [
-            'mode'      => class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_cleantalk_mode() : 'auto',
+            'mode'      => class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_cleantalk_mode() : 'auto',
             'available' => self::is_available(),
             'effective' => self::active(),
         ];
@@ -119,7 +122,7 @@ final class WSSF_CleanTalk {
         if ( ! $this->has_usable_client() ) { return; }
         if ( empty( $_GET['s'] ) || ! is_string( $_GET['s'] ) ) { return; }
         $search_query = sanitize_text_field( wp_unslash( $_GET['s'] ) );
-        if ( mb_strlen( $search_query ) < WSSF_Query_Parser::MIN_LEN ) { return; }
+        if ( mb_strlen( $search_query ) < Query_Parser::MIN_LEN ) { return; }
 
         $verdict_key = $this->verdict_key( $search_query );
         if ( $verdict_key === null ) { return; }
@@ -249,7 +252,7 @@ final class WSSF_CleanTalk {
         $has_cache_plugins = function_exists( 'apbct_is_cache_plugins_exists' ) && apbct_is_cache_plugins_exists();
 
         $strict_opt = class_exists( 'WSSF_Admin_Settings' )
-            ? WSSF_Admin_Settings::get_strict_mode()
+            ? Admin_Settings::get_strict_mode()
             : 'auto';
         if ( $strict_opt === 'on' ) {
             $strict_mode = true;
@@ -490,8 +493,8 @@ final class WSSF_CleanTalk {
     }
 
     private function verdict_ttl( int $allow ): int {
-        $opt_ttl_user  = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_ttl_user()  : 60;
-        $opt_ttl_guest = class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_ttl_guest() : 60;
+        $opt_ttl_user  = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_ttl_user()  : 60;
+        $opt_ttl_guest = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_ttl_guest() : 60;
 
         if ( $opt_ttl_user === 0 && $opt_ttl_guest === 0 ) {
             return 0;
@@ -576,7 +579,7 @@ final class WSSF_CleanTalk {
         if ( ! empty( $ctx['cat'] ) && (int) $ctx['cat'] > 0 ) {
             $args['cat'] = (int) $ctx['cat'];
         }
-        if ( ! empty( $ctx['pt'] ) && in_array( $ctx['pt'], WSSF_Search_Engine::get_post_types(), true ) ) {
+        if ( ! empty( $ctx['pt'] ) && in_array( $ctx['pt'], Search_Engine::get_post_types(), true ) ) {
             $args['pt'] = $ctx['pt'];
         }
         if ( ! empty( $ctx['tags'] ) )  { $args['tags']  = $ctx['tags']; }
@@ -598,7 +601,7 @@ final class WSSF_CleanTalk {
             if ( $ip === '' ) { return null; }
             $scope = 'ip' . $ip;
         }
-        $norm = WSSF_Query_Parser::sanitize( $raw_query );
+        $norm = Query_Parser::sanitize( $raw_query );
         return 'wssf_ct_' . md5( $scope . '|' . $norm );
     }
 }

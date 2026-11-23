@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -10,7 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * Report-only — безопасно для первого включения: не блокирует, но пишет
  * нарушения в консоль.
  */
-final class WSSF_Security_Headers {
+final class Security_Headers {
 
     public function register(): void {
         if ( is_admin() ) { return; }

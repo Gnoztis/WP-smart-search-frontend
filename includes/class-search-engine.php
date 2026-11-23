@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Search_Engine {
+final class Search_Engine {
 
     public const TAGS_LIMIT         = 10;
     public const TAGS_SCAN          = 200;
@@ -22,7 +25,7 @@ final class WSSF_Search_Engine {
     /** Index availability/count, memoized for the request (see index_state()). */
     private static ?array $index_state = null;
 
-    private WSSF_Rank_Fusion $fusion;
+    private Rank_Fusion $fusion;
 
     public static function get_post_types(): array {
         if ( self::$cached_post_types !== null ) { return self::$cached_post_types; }
@@ -58,12 +61,12 @@ final class WSSF_Search_Engine {
     }
 
     public function __construct(
-        private WSSF_Cache $cache,
-        private WSSF_Excerpt $excerpt,
-        private WSSF_Tokenizer $tokenizer,
-        private ?WSSF_Semantic_Search $semantic = null
+        private Cache $cache,
+        private Excerpt $excerpt,
+        private Tokenizer $tokenizer,
+        private ?Semantic_Search $semantic = null
     ) {
-        $this->fusion = new WSSF_Rank_Fusion();
+        $this->fusion = new Rank_Fusion();
     }
 
     private function get_index_table(): ?string {
@@ -137,7 +140,7 @@ final class WSSF_Search_Engine {
                 $t = (string) $t;
                 if ( $t === '' ) { continue; }
                 if ( ! $this->tokenizer->is_technical_id( $t ) ) { continue; }
-                if ( class_exists( 'WSSF_Yara' ) && WSSF_Yara::is_yara_token( $t ) ) { continue; }
+                if ( class_exists( 'WSSF_Yara' ) && Yara::is_yara_token( $t ) ) { continue; }
                 $ioc_values[ $t ] = true;
             }
         }
@@ -145,7 +148,7 @@ final class WSSF_Search_Engine {
         if ( empty( $ioc_values ) ) { return []; }
 
         try {
-            $map = new WSSF_IOC_Map( $this->cache );
+            $map = new IOC_Map( $this->cache );
             return $map->co_occurring( $ioc_values, $limit );
         } catch ( \Throwable $e ) { return []; }
     }
@@ -165,7 +168,7 @@ final class WSSF_Search_Engine {
         if ( $first_id <= 0 ) { return []; }
 
         try {
-            $mh = new WSSF_MinHash( $this->cache );
+            $mh = new MinHash( $this->cache );
             $similar = $mh->similar_to( $first_id );
         } catch ( \Throwable $e ) { return []; }
 
@@ -223,7 +226,7 @@ final class WSSF_Search_Engine {
         }
         if ( empty( $post_types ) ) { return []; }
 
-        $raw_norm = WSSF_Query_Parser::sanitize( $raw_query );
+        $raw_norm = Query_Parser::sanitize( $raw_query );
 
         $cache_key = 'wssf_tags_v18_' . $this->cache->generation() . '_'
             . md5( wp_json_encode( $groups ) . '|cat=' . $cat_id . '|in=' . implode( ',', $tag_ids )
@@ -604,7 +607,7 @@ final class WSSF_Search_Engine {
         $idf_boost_enabled   = (bool) apply_filters( 'wssf_idf_boost', true );
         $exact_match_enabled = (bool) apply_filters( 'wssf_exact_match_boost', true );
         $balance_power       = (float) apply_filters( 'wssf_term_balance_power',
-            class_exists( 'WSSF_Admin_Settings' ) ? WSSF_Admin_Settings::get_term_balance_power() : 0.0 );
+            class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_term_balance_power() : 0.0 );
         $post_type_weights   = $this->get_post_type_weights();
 
         $terms = [];
@@ -620,7 +623,7 @@ final class WSSF_Search_Engine {
             $term_counts = $this->get_term_balance_counts( $terms, $rows );
         }
 
-        $clean_query       = WSSF_Query_Parser::sanitize( $raw_query );
+        $clean_query       = Query_Parser::sanitize( $raw_query );
         $clean_query_lower = mb_strtolower( $clean_query );
 
         $scored = [];

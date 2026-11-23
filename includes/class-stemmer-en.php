@@ -1,12 +1,14 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
  * Стеммер Портера для английского языка (чистый PHP).
  * Адаптирован из публичной реализации Jon Abernathy / Richard Heyes.
  */
-final class WSSF_Stemmer_En {
+final class Stemmer_En {
 
     public function stem( string $word ): string {
         if ( $word === '' ) { return ''; }

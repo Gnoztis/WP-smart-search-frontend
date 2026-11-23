@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -11,7 +14,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * Хеш-функция: xxh64 (PHP 8.1+, ~50ns/вызов), fallback crc32.
  * Jaccard-погрешность при HASH_COUNT=64 — ±0.125, для порога 0.5 приемлемо.
  */
-final class WSSF_MinHash {
+final class MinHash {
 
     private const HASH_COUNT     = 64;
     private const SHINGLE_SIZE   = 3;
@@ -19,7 +22,7 @@ final class WSSF_MinHash {
     private const MAX_CANDIDATES = 500;
     private const MAX_RESULTS    = 5;
 
-    public function __construct( private WSSF_Cache $cache ) {}
+    public function __construct( private Cache $cache ) {}
 
     public function is_enabled(): bool {
         return (bool) get_option( 'wssf_minhash_enabled', 1 );

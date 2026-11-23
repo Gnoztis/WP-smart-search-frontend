@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -17,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  *
  * Все вычисления — чистый PHP, без внешних библиотек.
  */
-final class WSSF_PRF_Expander {
+final class PRF_Expander {
 
     /** Rocchio: вес исходного запроса. */
     private const ROCCHIO_ALPHA = 1.0;
@@ -44,7 +47,7 @@ final class WSSF_PRF_Expander {
     private static array $corpus_freq_cache = [];
 
     public function __construct(
-        private WSSF_Tokenizer $tokenizer
+        private Tokenizer $tokenizer
     ) {}
 
     /**

@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Plugin {
+final class Plugin {
 
     public const NONCE_ACTION = 'wssf_search_action';
     public const NONCE_FIELD  = 'nonce';
@@ -11,50 +14,50 @@ final class WSSF_Plugin {
 
     private static ?self $instance = null;
 
-    public WSSF_Assets          $assets;
-    public WSSF_Cache           $cache;
-    public WSSF_Security        $security;
-    public WSSF_CleanTalk       $cleantalk;
-    public WSSF_Query_Parser    $parser;
-    public WSSF_Initial_State   $initial;
-    public WSSF_Search_Engine   $engine;
-    public WSSF_Excerpt         $excerpt;
-    public WSSF_Ajax_Handler    $ajax;
-    public WSSF_Semantic_Search $semantic;
-    public WSSF_Autocomplete    $autocomplete;
+    public Assets          $assets;
+    public Cache           $cache;
+    public Security        $security;
+    public CleanTalk       $cleantalk;
+    public Query_Parser    $parser;
+    public Initial_State   $initial;
+    public Search_Engine   $engine;
+    public Excerpt         $excerpt;
+    public Ajax_Handler    $ajax;
+    public Semantic_Search $semantic;
+    public Autocomplete    $autocomplete;
 
     public static function instance(): self {
         if ( self::$instance === null ) { self::$instance = new self(); }
         return self::$instance;
     }
 
-    public static function get_min_len(): int { return WSSF_Query_Parser::MIN_LEN; }
+    public static function get_min_len(): int { return Query_Parser::MIN_LEN; }
 
     private function __construct() {
-        $this->cache     = new WSSF_Cache();
-        $this->security  = new WSSF_Security( $this->cache );
+        $this->cache     = new Cache();
+        $this->security  = new Security( $this->cache );
 
-        $morphology      = new WSSF_Morphology();
-        $tokenizer       = new WSSF_Tokenizer( $morphology );
-        $this->parser    = new WSSF_Query_Parser( $tokenizer );
-        $this->excerpt   = new WSSF_Excerpt();
-        $this->initial   = new WSSF_Initial_State();
+        $morphology      = new Morphology();
+        $tokenizer       = new Tokenizer( $morphology );
+        $this->parser    = new Query_Parser( $tokenizer );
+        $this->excerpt   = new Excerpt();
+        $this->initial   = new Initial_State();
 
-        $this->semantic = new WSSF_Semantic_Search( $this->cache, $tokenizer );
+        $this->semantic = new Semantic_Search( $this->cache, $tokenizer );
 
-        $this->engine = new WSSF_Search_Engine(
+        $this->engine = new Search_Engine(
             $this->cache,
             $this->excerpt,
             $tokenizer,
             $this->semantic
         );
 
-        $this->autocomplete = new WSSF_Autocomplete( $this->cache, $tokenizer );
+        $this->autocomplete = new Autocomplete( $this->cache, $tokenizer );
 
-        $this->cleantalk = new WSSF_CleanTalk( $this->cache, $this->security );
-        $corrector       = new WSSF_Layout_Corrector( $tokenizer );
+        $this->cleantalk = new CleanTalk( $this->cache, $this->security );
+        $corrector       = new Layout_Corrector( $tokenizer );
 
-        $this->ajax = new WSSF_Ajax_Handler(
+        $this->ajax = new Ajax_Handler(
             $this->parser,
             $this->engine,
             $this->cleantalk,
@@ -63,8 +66,8 @@ final class WSSF_Plugin {
             $this->autocomplete
         );
 
-        $this->assets = new WSSF_Assets( $this->initial );
+        $this->assets = new Assets( $this->initial );
 
-        WSSF_Hooks::instance( $this )->register();
+        Hooks::instance( $this )->register();
     }
 }

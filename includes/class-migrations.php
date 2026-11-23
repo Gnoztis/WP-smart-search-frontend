@@ -1,11 +1,14 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Migrations {
+final class Migrations {
 
     public static function current_version(): string {
-        return defined( 'WSSF_VERSION' ) ? (string) WSSF_VERSION : '0.0.0';
+        return defined( 'WSSF_VERSION' ) ? (string) VERSION : '0.0.0';
     }
 
     public static function stored_version(): string {
@@ -57,7 +60,7 @@ final class WSSF_Migrations {
     }
 
     public static function migrate_4_0_0(): void {
-        $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+        $indexer = new Indexer( new Tokenizer( new Morphology() ) );
         $indexer->create_table();
         $indexer->ensure_indexes();
         global $wpdb;
@@ -71,13 +74,13 @@ final class WSSF_Migrations {
     }
     public static function migrate_4_1_0(): void {}
     public static function migrate_4_1_1(): void {
-        try { $c = new WSSF_Cache(); $c->bump_generation(); $c->delete_transients_by_prefix( 'wssf_prf_' ); $c->delete_transients_by_prefix( 'wssf_syn_' ); }
+        try { $c = new Cache(); $c->bump_generation(); $c->delete_transients_by_prefix( 'wssf_prf_' ); $c->delete_transients_by_prefix( 'wssf_syn_' ); }
         catch ( \Throwable $e ) {}
     }
     public static function migrate_4_2_0(): void { self::migrate_4_1_1(); }
     public static function migrate_4_2_1(): void { self::migrate_4_1_1(); }
     public static function migrate_4_3_0(): void {
-        try { $c = new WSSF_Cache(); $c->bump_generation(); $c->delete( 'wssf_bk_tree_v1' ); $c->delete( 'wssf_ngram_index_v1' ); $c->delete( 'wssf_fuzzy_dict_v1' ); }
+        try { $c = new Cache(); $c->bump_generation(); $c->delete( 'wssf_bk_tree_v1' ); $c->delete( 'wssf_ngram_index_v1' ); $c->delete( 'wssf_fuzzy_dict_v1' ); }
         catch ( \Throwable $e ) {}
     }
     public static function migrate_4_4_0(): void {}
@@ -142,7 +145,7 @@ final class WSSF_Migrations {
             dbDelta( $sql );
             $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
             if ( $count === 0 && class_exists( 'WSSF_Stopwords' ) ) {
-                WSSF_Stopwords::instance()->load_defaults();
+                Stopwords::instance()->load_defaults();
             }
         }
         if ( get_option( 'wssf_cron_reindex_enabled', null ) === null ) { update_option( 'wssf_cron_reindex_enabled', 0, true ); }
@@ -173,8 +176,8 @@ final class WSSF_Migrations {
         if ( get_option( 'wssf_related_enabled', null ) === null ) { update_option( 'wssf_related_enabled', 1, true ); }
         if ( get_option( 'wssf_related_max', null ) === null ) { update_option( 'wssf_related_max', 10, true ); }
         update_option( 'wssf_cron_reindex_enabled', 1, true );
-        wp_clear_scheduled_hook( WSSF_Hooks::CRON_HOOK );
-        try { $cache = new WSSF_Cache(); $cache->bump_generation(); } catch ( \Throwable $e ) {}
+        wp_clear_scheduled_hook( Hooks::CRON_HOOK );
+        try { $cache = new Cache(); $cache->bump_generation(); } catch ( \Throwable $e ) {}
     }
 
     /**
@@ -226,7 +229,7 @@ final class WSSF_Migrations {
         if ( get_option( 'wssf_csp_img_src', null ) === null ) { update_option( 'wssf_csp_img_src', '', true ); }
         if ( get_option( 'wssf_csp_connect_src', null ) === null ) { update_option( 'wssf_csp_connect_src', '', true ); }
 
-        try { $cache = new WSSF_Cache(); $cache->bump_generation(); } catch ( \Throwable $e ) {}
+        try { $cache = new Cache(); $cache->bump_generation(); } catch ( \Throwable $e ) {}
     }
 
     /**
@@ -261,7 +264,7 @@ final class WSSF_Migrations {
         }
 
         try {
-            $cache = new WSSF_Cache();
+            $cache = new Cache();
             $cache->bump_generation();
             $cache->delete_transients_by_prefix( 'wssf_mh_sim_' );
         } catch ( \Throwable $e ) {}

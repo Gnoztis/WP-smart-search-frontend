@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Admin_Actions {
+final class Admin_Actions {
 
     private const PAGE_SLUG = 'wssf-settings';
 
@@ -12,7 +15,7 @@ final class WSSF_Admin_Actions {
 
     public static function handle_save_settings(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_save_settings' );
@@ -104,12 +107,12 @@ final class WSSF_Admin_Actions {
         }
         $saved_types = array_values( array_unique( $saved_types ) );
         if ( empty( $saved_types ) ) {
-            $saved_types = WSSF_Search_Engine::DEFAULT_SEARCH_POST_TYPES;
+            $saved_types = Search_Engine::DEFAULT_SEARCH_POST_TYPES;
         }
         update_option( 'wssf_search_post_types', $saved_types, true );
 
-        WSSF_Search_Engine::reset_post_types_cache();
-        $cache = WSSF_Plugin::instance()->cache;
+        Search_Engine::reset_post_types_cache();
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete( 'wssf_index_count' );
         $cache->delete_transients_by_prefix( 'wssf_ac_' );
@@ -117,7 +120,7 @@ final class WSSF_Admin_Actions {
         $cache->delete_transients_by_prefix( 'wssf_ioc_rel_' );
         $cache->delete_transients_by_prefix( 'wssf_mh_sim_' );
 
-        wp_clear_scheduled_hook( WSSF_Hooks::CRON_HOOK );
+        wp_clear_scheduled_hook( Hooks::CRON_HOOK );
 
         wp_safe_redirect( add_query_arg(
             [ 'page' => self::PAGE_SLUG, 'tab' => 'general', 'saved' => 1 ],
@@ -132,7 +135,7 @@ final class WSSF_Admin_Actions {
 
     public static function handle_save_semantic(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_save_semantic' );
@@ -145,7 +148,7 @@ final class WSSF_Admin_Actions {
         delete_option( 'wssf_embedding_model' );
         delete_option( 'wssf_openai_key' );
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete_transients_by_prefix( 'wssf_prf_' );
         $cache->delete_transients_by_prefix( 'wssf_syn_' );
@@ -164,7 +167,7 @@ final class WSSF_Admin_Actions {
 
     public static function handle_save_ranking(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_save_ranking' );
@@ -195,7 +198,7 @@ final class WSSF_Admin_Actions {
         $power = max( 0.0, min( 5.0, $power ) );
         update_option( 'wssf_term_balance_power', $power, true );
 
-        $available = WSSF_Search_Engine::get_post_types();
+        $available = Search_Engine::get_post_types();
         $weights   = [];
         foreach ( $available as $pt ) {
             $field = 'wssf_pt_weight_' . $pt;
@@ -207,7 +210,7 @@ final class WSSF_Admin_Actions {
         }
         update_option( 'wssf_post_type_weights', $weights, true );
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete_transients_by_prefix( 'wssf_idf_' );
 
@@ -224,7 +227,7 @@ final class WSSF_Admin_Actions {
 
     public static function handle_save_stopwords(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_save_stopwords' );
@@ -239,12 +242,12 @@ final class WSSF_Admin_Actions {
         if ( $action === 'save_enabled' ) {
             update_option( 'wssf_stopwords_enabled', isset( $_POST['wssf_stopwords_enabled'] ) ? 1 : 0, true );
             try {
-                WSSF_Stopwords::instance()->flush_cache();
-                $cache = WSSF_Plugin::instance()->cache;
+                Stopwords::instance()->flush_cache();
+                $cache = Plugin::instance()->cache;
                 $cache->bump_generation();
             } catch ( \Throwable $e ) {}
         } else {
-            $sw = WSSF_Stopwords::instance();
+            $sw = Stopwords::instance();
 
             if ( $action === 'add' ) {
                 $raw   = isset( $_POST['wssf_sw_terms'] )
@@ -273,7 +276,7 @@ final class WSSF_Admin_Actions {
 
     public static function handle_stopwords_clear(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_stopwords_clear' );
@@ -282,7 +285,7 @@ final class WSSF_Admin_Actions {
             ? sanitize_key( wp_unslash( $_POST['lang'] ) ) : '';
         if ( ! in_array( $lang, [ '', 'ru', 'en' ], true ) ) { $lang = ''; }
 
-        WSSF_Stopwords::instance()->clear( $lang );
+        Stopwords::instance()->clear( $lang );
 
         wp_safe_redirect( add_query_arg(
             [ 'page' => self::PAGE_SLUG, 'tab' => 'general', 'sw_cleared' => 1 ],
@@ -293,12 +296,12 @@ final class WSSF_Admin_Actions {
 
     public static function handle_stopwords_reload(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_stopwords_reload' );
 
-        WSSF_Stopwords::instance()->load_defaults();
+        Stopwords::instance()->load_defaults();
 
         wp_safe_redirect( add_query_arg(
             [ 'page' => self::PAGE_SLUG, 'tab' => 'general', 'sw_reloaded' => 1 ],
@@ -313,12 +316,12 @@ final class WSSF_Admin_Actions {
 
     public static function handle_cron_run_now(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_cron_run_now' );
 
-        WSSF_Hooks::instance( WSSF_Plugin::instance() )->run_cron_reindex();
+        Hooks::instance( Plugin::instance() )->run_cron_reindex();
 
         wp_safe_redirect( add_query_arg(
             [ 'page' => self::PAGE_SLUG, 'tab' => 'maintenance', 'cron_ran' => 1 ],
@@ -333,20 +336,20 @@ final class WSSF_Admin_Actions {
 
     public static function handle_ioc_map_rebuild(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_ioc_map_rebuild' );
 
         try {
-            $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+            $indexer = new Indexer( new Tokenizer( new Morphology() ) );
 
             if ( class_exists( 'WSSF_IOC_Map' ) ) {
-                $ioc_map = new WSSF_IOC_Map( WSSF_Plugin::instance()->cache );
+                $ioc_map = new IOC_Map( Plugin::instance()->cache );
                 $ioc_map->truncate();
             }
 
-            $post_types = WSSF_Search_Engine::get_post_types();
+            $post_types = Search_Engine::get_post_types();
             if ( ! empty( $post_types ) ) {
                 global $wpdb;
                 $ph  = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
@@ -366,7 +369,7 @@ final class WSSF_Admin_Actions {
             }
         }
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete_transients_by_prefix( 'wssf_coc_' );
         $cache->delete_transients_by_prefix( 'wssf_ioc_rel_' );
@@ -384,7 +387,7 @@ final class WSSF_Admin_Actions {
 
     public static function handle_reset_index(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_reset_index' );
@@ -410,19 +413,19 @@ final class WSSF_Admin_Actions {
 
         if ( class_exists( 'WSSF_IOC_Map' ) ) {
             try {
-                $ioc_map = new WSSF_IOC_Map( WSSF_Plugin::instance()->cache );
+                $ioc_map = new IOC_Map( Plugin::instance()->cache );
                 $ioc_map->truncate();
             } catch ( \Throwable $e ) { /* ignore */ }
         }
 
         if ( class_exists( 'WSSF_MinHash' ) ) {
             try {
-                $mh = new WSSF_MinHash( WSSF_Plugin::instance()->cache );
+                $mh = new MinHash( Plugin::instance()->cache );
                 $mh->truncate();
             } catch ( \Throwable $e ) { /* ignore */ }
         }
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete( 'wssf_index_count' );
         $cache->delete( 'wssf_index_exists' );
@@ -445,7 +448,7 @@ final class WSSF_Admin_Actions {
 
     public static function handle_drop_index(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_drop_index' );
@@ -467,12 +470,12 @@ final class WSSF_Admin_Actions {
             }
         }
 
-        $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+        $indexer = new Indexer( new Tokenizer( new Morphology() ) );
         $indexer->create_table();
         $indexer->create_terms_table();
         $indexer->ensure_indexes();
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete( 'wssf_index_count' );
         $cache->delete( 'wssf_index_exists' );
@@ -498,12 +501,12 @@ final class WSSF_Admin_Actions {
 
     public static function handle_clear_cache(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_clear_cache' );
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete( 'wssf_index_count' );
         $cache->delete( 'wssf_index_exists' );
@@ -528,12 +531,12 @@ final class WSSF_Admin_Actions {
 
     public static function handle_clear_ct_cache(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_clear_ct_cache' );
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->delete_transients_by_prefix( 'wssf_ct_' );
         $cache->delete_options_by_prefix( '_wssf_ct_lock_' );
 
@@ -546,11 +549,11 @@ final class WSSF_Admin_Actions {
 
     public static function handle_clear_rate_limit(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_clear_rate_limit' );
-        WSSF_Plugin::instance()->cache->flush_rate_limit_group();
+        Plugin::instance()->cache->flush_rate_limit_group();
         wp_safe_redirect( add_query_arg(
             [ 'page' => self::PAGE_SLUG, 'tab' => 'maintenance', 'rl_cleared' => 1 ],
             admin_url( 'options-general.php' )
@@ -560,11 +563,11 @@ final class WSSF_Admin_Actions {
 
     public static function handle_clear_diag_cache(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_clear_diag_cache' );
-        WSSF_Plugin::instance()->cache->delete_transients_by_prefix( 'wssf_diag_' );
+        Plugin::instance()->cache->delete_transients_by_prefix( 'wssf_diag_' );
         wp_safe_redirect( add_query_arg(
             [ 'page' => self::PAGE_SLUG, 'tab' => 'maintenance', 'diag_cleared' => 1 ],
             admin_url( 'options-general.php' )
@@ -574,12 +577,12 @@ final class WSSF_Admin_Actions {
 
     public static function handle_clear_all_caches(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'admin_action' );
+            Security::log_event( 'cap_denied', 'admin_action' );
             wp_die( 'Forbidden', 403 );
         }
         check_admin_referer( 'wssf_clear_all_caches' );
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete( 'wssf_index_count' );
         $cache->delete( 'wssf_index_exists' );
@@ -614,11 +617,11 @@ final class WSSF_Admin_Actions {
      * ============================================================ */
 
     public static function handle_diag_run(): void {
-        WSSF_Admin_Diagnostics::instance()->handle_run();
+        Admin_Diagnostics::instance()->handle_run();
     }
 
     public static function handle_diag_search(): void {
-        WSSF_Admin_Diagnostics::instance()->handle_search_test();
+        Admin_Diagnostics::instance()->handle_search_test();
     }
 
     /* ============================================================
@@ -640,7 +643,7 @@ final class WSSF_Admin_Actions {
 
     public static function ajax_reindex_start(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'ajax:reindex' );
+            Security::log_event( 'cap_denied', 'ajax:reindex' );
             wp_send_json_error( [ 'code' => 'wssf_cap_denied', 'message' => 'Forbidden' ], 403 );
         }
         check_ajax_referer( 'wssf_reindex_ajax', 'nonce' );
@@ -649,11 +652,11 @@ final class WSSF_Admin_Actions {
         if ( ! in_array( $mode, [ 'all', 'missing' ], true ) ) { $mode = 'all'; }
 
         try {
-            $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+            $indexer = new Indexer( new Tokenizer( new Morphology() ) );
             $indexer->create_table();
             $indexer->create_terms_table();
             if ( class_exists( 'WSSF_MinHash' ) ) {
-                ( new WSSF_MinHash( WSSF_Plugin::instance()->cache ) )->create_table();
+                ( new MinHash( Plugin::instance()->cache ) )->create_table();
             }
             $total = ( $mode === 'missing' )
                 ? $indexer->count_missing_posts()
@@ -674,7 +677,7 @@ final class WSSF_Admin_Actions {
 
     public static function ajax_reindex_batch(): void {
         if ( ! current_user_can( 'manage_options' ) ) {
-            WSSF_Security::log_event( 'cap_denied', 'ajax:reindex' );
+            Security::log_event( 'cap_denied', 'ajax:reindex' );
             wp_send_json_error( [ 'code' => 'wssf_cap_denied', 'message' => 'Forbidden' ], 403 );
         }
         check_ajax_referer( 'wssf_reindex_ajax', 'nonce' );
@@ -688,7 +691,7 @@ final class WSSF_Admin_Actions {
             ? max( 10, min( 500, absint( $_POST['limit'] ) ) )
             : max( 10, min( 500, (int) get_option( 'wssf_reindex_batch_size', 200 ) ) );
 
-        $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+        $indexer = new Indexer( new Tokenizer( new Morphology() ) );
 
         try {
             if ( $mode === 'missing' ) {
@@ -713,7 +716,7 @@ final class WSSF_Admin_Actions {
 
         if ( $written === 0 && $processed > 0 ) {
             update_option( 'wssf_index_updated_at', current_time( 'mysql' ), true );
-            WSSF_Plugin::instance()->cache->delete( 'wssf_index_count' );
+            Plugin::instance()->cache->delete( 'wssf_index_count' );
             wp_send_json_success( [
                 'processed' => 0,
                 'offset'    => $offset,
@@ -736,7 +739,7 @@ final class WSSF_Admin_Actions {
 
         if ( $done ) {
             update_option( 'wssf_index_updated_at', current_time( 'mysql' ), true );
-            $cache = WSSF_Plugin::instance()->cache;
+            $cache = Plugin::instance()->cache;
             $cache->bump_generation();
             $cache->delete( 'wssf_index_count' );
             $cache->delete( 'wssf_sem_dict_v1' );
@@ -797,10 +800,10 @@ final class WSSF_Admin_Actions {
             'optimized'      => false,
         ];
 
-        $stats['optimized'] = version_compare( $stats['schema_version'], WSSF_VERSION, '>=' );
+        $stats['optimized'] = version_compare( $stats['schema_version'], VERSION, '>=' );
 
         try {
-            $post_types = WSSF_Search_Engine::get_post_types();
+            $post_types = Search_Engine::get_post_types();
             if ( ! empty( $post_types ) ) {
                 $ph = implode( ',', array_fill( 0, count( $post_types ), '%s' ) );
                 $sql = $wpdb->prepare(

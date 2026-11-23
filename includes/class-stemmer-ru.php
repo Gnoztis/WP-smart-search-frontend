@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -7,7 +9,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * Адаптирован из публичной реализации Lingua_Stem_Ru
  * (https://github.com/neonxp/Stemmer).
  */
-final class WSSF_Stemmer_Ru {
+final class Stemmer_Ru {
 
     private string $VOWEL            = '/аеиоуыэюя/ui';
     private string $PERFECTIVEGROUND = '/((ив|ивши|ившись|ыв|ывши|ывшись)|((?<=[ая])(в|вши|вшись)))$/ui';

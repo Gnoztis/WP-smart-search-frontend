@@ -1,15 +1,17 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Morphology {
+final class Morphology {
 
-    private WSSF_Stemmer_Ru $ru;
-    private WSSF_Stemmer_En $en;
+    private Stemmer_Ru $ru;
+    private Stemmer_En $en;
 
     public function __construct() {
-        $this->ru = new WSSF_Stemmer_Ru();
-        $this->en = new WSSF_Stemmer_En();
+        $this->ru = new Stemmer_Ru();
+        $this->en = new Stemmer_En();
     }
 
     /**

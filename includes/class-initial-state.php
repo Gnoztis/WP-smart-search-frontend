@@ -1,8 +1,11 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Initial_State {
+final class Initial_State {
 
     public function get_query(): string {
         $candidates = [];
@@ -21,9 +24,9 @@ final class WSSF_Initial_State {
         }
         foreach ( $candidates as $candidate ) {
             if ( ! is_string( $candidate ) ) { continue; }
-            $q = WSSF_Query_Parser::sanitize( $candidate );
-            if ( mb_strlen( $q ) > WSSF_Query_Parser::MAX_QUERY_LEN ) {
-                $q = mb_substr( $q, 0, WSSF_Query_Parser::MAX_QUERY_LEN );
+            $q = Query_Parser::sanitize( $candidate );
+            if ( mb_strlen( $q ) > Query_Parser::MAX_QUERY_LEN ) {
+                $q = mb_substr( $q, 0, Query_Parser::MAX_QUERY_LEN );
             }
             if ( $q !== '' ) { return $q; }
         }
@@ -38,7 +41,7 @@ final class WSSF_Initial_State {
     public function get_type(): string {
         if ( ! isset( $_GET['pt'] ) ) { return ''; }
         $pt = sanitize_key( wp_unslash( $_GET['pt'] ) );
-        if ( ! in_array( $pt, WSSF_Search_Engine::get_post_types(), true ) ) { return ''; }
+        if ( ! in_array( $pt, Search_Engine::get_post_types(), true ) ) { return ''; }
         return $pt;
     }
 

@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -12,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * RRF не зависит от абсолютных значений score, поэтому надёжно
  * сливает разнородные ранжирования (BM25, PRF, fuzzy).
  */
-final class WSSF_Rank_Fusion {
+final class Rank_Fusion {
 
     private const DEFAULT_K = 60;
 

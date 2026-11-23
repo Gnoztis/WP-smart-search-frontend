@@ -1,7 +1,5 @@
 # Dependencies and local tooling (never part of the plugin).
 node_modules/
-vendor/
-composer.lock
 package-lock.json
 pnpm-lock.yaml
 
@@ -23,3 +21,10 @@ desktop.ini
 *.rej
 *.sql
 *.dump
+
+# Локальные тесты и харнессы — не коммитятся (правило проекта: тесты не в git)
+tests/
+tests.php
+*.test.mjs
+*.test.js
+*-test.php

@@ -1,9 +1,14 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
+use WP_CLI;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) { return; }
 
-final class WSSF_CLI {
+final class CLI {
 
     /**
      * Переиндексирует посты.
@@ -30,11 +35,11 @@ final class WSSF_CLI {
         $mode  = isset( $assoc['mode'] ) ? (string) $assoc['mode'] : 'all';
         if ( ! in_array( $mode, [ 'all', 'missing' ], true ) ) { $mode = 'all'; }
 
-        $indexer = new WSSF_Indexer( new WSSF_Tokenizer( new WSSF_Morphology() ) );
+        $indexer = new Indexer( new Tokenizer( new Morphology() ) );
         $indexer->create_table();
         $indexer->create_terms_table();
         if ( class_exists( 'WSSF_MinHash' ) ) {
-            ( new WSSF_MinHash( WSSF_Plugin::instance()->cache ) )->create_table();
+            ( new MinHash( Plugin::instance()->cache ) )->create_table();
         }
 
         $total = ( $mode === 'missing' )
@@ -72,7 +77,7 @@ final class WSSF_CLI {
 
         update_option( 'wssf_index_updated_at', current_time( 'mysql' ), true );
 
-        $cache = WSSF_Plugin::instance()->cache;
+        $cache = Plugin::instance()->cache;
         $cache->bump_generation();
         $cache->delete( 'wssf_index_count' );
         $cache->delete_transients_by_prefix( 'wssf_mh_sim_' );

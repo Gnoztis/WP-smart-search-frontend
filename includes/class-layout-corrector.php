@@ -1,17 +1,20 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-final class WSSF_Layout_Corrector {
+final class Layout_Corrector {
 
     private const EN_LOWER = 'qwertyuiop[]asdfghjkl;\'zxcvbnm,./`';
     private const RU_LOWER = 'йцукенгшщзхъфывапролджэячсмитьбю.ё';
     private const EN_UPPER = 'QWERTYUIOP{}ASDFGHJKL:"ZXCVBNM<>?~';
     private const RU_UPPER = 'ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ,Ё';
 
-    private WSSF_Tokenizer $tokenizer;
+    private Tokenizer $tokenizer;
 
-    public function __construct( WSSF_Tokenizer $tokenizer ) {
+    public function __construct( Tokenizer $tokenizer ) {
         $this->tokenizer = $tokenizer;
     }
 

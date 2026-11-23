@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+
+namespace WSSF;
+
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 /**
@@ -25,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * without storage would silently let every request through, so when Redis is
  * unavailable the counter lives in a TTL-bounded transient (see WSSF_Security).
  */
-final class WSSF_Cache {
+final class Cache {
 
     private const CACHE_TTL        = 86400;
     private const CACHE_GEN_OPTION = 'wssf_cache_gen';
