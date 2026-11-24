@@ -56,9 +56,7 @@ final class Hooks {
         add_action( 'wp_logout', [ $this, 'on_user_logout' ] );
 
         // Security headers
-        if ( class_exists( 'WSSF_Security_Headers' ) ) {
-            ( new Security_Headers() )->register();
-        }
+        ( new Security_Headers() )->register();
     }
 
     /* ============================================================

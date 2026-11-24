@@ -187,17 +187,15 @@ final class Indexer {
         $tags_text      = is_array( $tags ) ? implode( ' ', wp_list_pluck( $tags, 'name' ) ) : '';
         $tags_tokens    = $this->tokenizer->tokenize( $tags_text );
 
-        if ( class_exists( 'WSSF_Yara' ) ) {
-            try {
-                $yara = new Yara();
-                if ( $yara->is_enabled() ) {
-                    $yara_tokens = $yara->build_index_tokens( $content );
-                    if ( ! empty( $yara_tokens ) ) {
-                        $content_tokens = array_merge( $content_tokens, $yara_tokens );
-                    }
+        try {
+            $yara = new Yara();
+            if ( $yara->is_enabled() ) {
+                $yara_tokens = $yara->build_index_tokens( $content );
+                if ( ! empty( $yara_tokens ) ) {
+                    $content_tokens = array_merge( $content_tokens, $yara_tokens );
                 }
-            } catch ( \Throwable $e ) {}
-        }
+            }
+        } catch ( \Throwable $e ) {}
 
         $old_terms = $this->get_existing_terms( $post_id );
 
@@ -218,24 +216,20 @@ final class Indexer {
         $this->update_terms( $old_terms, $new_terms );
 
         try {
-            if ( class_exists( 'WSSF_IOC_Map' ) ) {
-                $ioc_map = new IOC_Map( Plugin::instance()->cache );
-                if ( $ioc_map->is_enabled() ) {
-                    $ioc_values = $this->extract_ioc_values(
-                        (string) $post->post_title . ' ' . $content . ' ' . $tags_text
-                    );
-                    $ioc_map->update_for_post( $post_id, $ioc_values );
-                }
+            $ioc_map = new IOC_Map( Plugin::instance()->cache );
+            if ( $ioc_map->is_enabled() ) {
+                $ioc_values = $this->extract_ioc_values(
+                    (string) $post->post_title . ' ' . $content . ' ' . $tags_text
+                );
+                $ioc_map->update_for_post( $post_id, $ioc_values );
             }
         } catch ( \Throwable $e ) {}
 
         try {
-            if ( class_exists( 'WSSF_MinHash' ) ) {
-                $mh = new MinHash( Plugin::instance()->cache );
-                if ( $mh->is_enabled() ) {
-                    $combined_tokens = array_values( array_unique( array_merge( $content_tokens, $title_tokens ) ) );
-                    $mh->update_for_post( $post_id, $combined_tokens );
-                }
+            $mh = new MinHash( Plugin::instance()->cache );
+            if ( $mh->is_enabled() ) {
+                $combined_tokens = array_values( array_unique( array_merge( $content_tokens, $title_tokens ) ) );
+                $mh->update_for_post( $post_id, $combined_tokens );
             }
         } catch ( \Throwable $e ) {}
 
@@ -273,17 +267,13 @@ final class Indexer {
         $wpdb->delete( $this->table, [ 'post_id' => $post_id ], [ '%d' ] );
 
         try {
-            if ( class_exists( 'WSSF_IOC_Map' ) ) {
-                $ioc_map = new IOC_Map( Plugin::instance()->cache );
-                $ioc_map->delete_for_post( $post_id );
-            }
+            $ioc_map = new IOC_Map( Plugin::instance()->cache );
+            $ioc_map->delete_for_post( $post_id );
         } catch ( \Throwable $e ) {}
 
         try {
-            if ( class_exists( 'WSSF_MinHash' ) ) {
-                $mh = new MinHash( Plugin::instance()->cache );
-                $mh->delete_for_post( $post_id );
-            }
+            $mh = new MinHash( Plugin::instance()->cache );
+            $mh->delete_for_post( $post_id );
         } catch ( \Throwable $e ) {}
     }
 
@@ -376,7 +366,7 @@ final class Indexer {
     }
 
     public static function classify_term( string $term ): string {
-        if ( class_exists( 'WSSF_Yara' ) && Yara::is_yara_token( $term ) ) {
+        if ( Yara::is_yara_token( $term ) ) {
             return strpos( $term, 'yaratag:' ) === 0 ? 'yaratag' : 'yara';
         }
         $patterns = [

@@ -2,19 +2,19 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 if ( ! current_user_can( 'manage_options' ) ) { return; }
 
-$strict_mode  = WSSF_Admin_Settings::get_strict_mode();
-$cleantalk    = WSSF_CleanTalk::state();
+$strict_mode  = \WSSF\Admin_Settings::get_strict_mode();
+$cleantalk    = \WSSF\CleanTalk::state();
 $ct_mode      = $cleantalk['mode'];
 $ct_on        = $cleantalk['available'];
 $ct_effective = $cleantalk['effective'];
-$ttl_user     = WSSF_Admin_Settings::get_ttl_user();
-$ttl_guest    = WSSF_Admin_Settings::get_ttl_guest();
-$did_you_mean = WSSF_Admin_Settings::is_did_you_mean_enabled();
-$suggestions  = WSSF_Admin_Settings::is_suggestions_enabled();
-$history      = WSSF_Admin_Settings::is_history_enabled();
-$ac_on        = WSSF_Admin_Settings::is_autocomplete_enabled();
-$ac_min       = WSSF_Admin_Settings::get_autocomplete_min_len();
-$ac_max       = WSSF_Admin_Settings::get_autocomplete_max();
+$ttl_user     = \WSSF\Admin_Settings::get_ttl_user();
+$ttl_guest    = \WSSF\Admin_Settings::get_ttl_guest();
+$did_you_mean = \WSSF\Admin_Settings::is_did_you_mean_enabled();
+$suggestions  = \WSSF\Admin_Settings::is_suggestions_enabled();
+$history      = \WSSF\Admin_Settings::is_history_enabled();
+$ac_on        = \WSSF\Admin_Settings::is_autocomplete_enabled();
+$ac_min       = \WSSF\Admin_Settings::get_autocomplete_min_len();
+$ac_max       = \WSSF\Admin_Settings::get_autocomplete_max();
 
 $sw_enabled = (bool) get_option( 'wssf_stopwords_enabled', 1 );
 $yara_on    = (bool) get_option( 'wssf_yara_enabled', 1 );
@@ -45,7 +45,7 @@ $csp_style   = (string) get_option( 'wssf_csp_style_src', '' );
 $csp_img     = (string) get_option( 'wssf_csp_img_src', '' );
 $csp_conn    = (string) get_option( 'wssf_csp_connect_src', '' );
 
-$saved_types = WSSF_Search_Engine::get_post_types();
+$saved_types = \WSSF\Search_Engine::get_post_types();
 $all_types   = get_post_types( [ 'public' => true ], 'objects' );
 
 // Stopwords

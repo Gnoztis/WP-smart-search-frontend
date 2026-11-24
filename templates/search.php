@@ -23,7 +23,7 @@ if ( $raw_s === '' && ! empty( $_SERVER['REQUEST_URI'] ) ) {
 if ( $raw_s === '' ) { $raw_s = get_search_query(); }
 
 $initial_query = is_string( $raw_s ) ? trim( $raw_s ) : '';
-$min_len       = WSSF_Plugin::get_min_len();
+$min_len       = \WSSF\Plugin::get_min_len();
 $query_len     = mb_strlen( $initial_query );
 $is_too_short  = ( $initial_query !== '' && $query_len < $min_len );
 $has_query     = $initial_query !== '';
@@ -31,7 +31,7 @@ $has_query     = $initial_query !== '';
 $current_cat  = isset( $_GET['cat'] ) ? absint( wp_unslash( $_GET['cat'] ) ) : 0;
 $current_type = isset( $_GET['pt'] ) ? sanitize_key( wp_unslash( $_GET['pt'] ) ) : '';
 
-$post_types = WSSF_Search_Engine::get_post_types();
+$post_types = \WSSF\Search_Engine::get_post_types();
 if ( ! in_array( $current_type, $post_types, true ) ) {
     $current_type = '';
 }
@@ -120,8 +120,8 @@ $categories = get_categories( [ 'hide_empty' => false ] );
 
                 <?php
                 // Hidden fields of the CleanTalk check: empty unless the
-                // integration is active (see WSSF_CleanTalk::active()).
-                echo WSSF_CleanTalk::form_fields(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- third-party CleanTalk markup, returned only when the integration is active.
+                // integration is active (see \WSSF\CleanTalk::active()).
+                echo \WSSF\CleanTalk::form_fields(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- third-party CleanTalk markup, returned only when the integration is active.
                 ?>
             </form>
 

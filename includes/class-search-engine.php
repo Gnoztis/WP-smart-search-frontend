@@ -132,7 +132,6 @@ final class Search_Engine {
      */
     public function get_related_iocs( array $groups, int $limit = 10 ): array {
         if ( ! (bool) get_option( 'wssf_related_enabled', 1 ) ) { return []; }
-        if ( ! class_exists( 'WSSF_IOC_Map' ) ) { return []; }
 
         $ioc_values = [];
         foreach ( $groups as $g ) {
@@ -140,7 +139,7 @@ final class Search_Engine {
                 $t = (string) $t;
                 if ( $t === '' ) { continue; }
                 if ( ! $this->tokenizer->is_technical_id( $t ) ) { continue; }
-                if ( class_exists( 'WSSF_Yara' ) && Yara::is_yara_token( $t ) ) { continue; }
+                if ( Yara::is_yara_token( $t ) ) { continue; }
                 $ioc_values[ $t ] = true;
             }
         }
@@ -162,7 +161,6 @@ final class Search_Engine {
     public function get_similar_posts( array $items ): array {
         if ( ! (bool) get_option( 'wssf_minhash_enabled', 1 ) ) { return []; }
         if ( empty( $items ) ) { return []; }
-        if ( ! class_exists( 'WSSF_MinHash' ) ) { return []; }
 
         $first_id = (int) ( $items[0]['id'] ?? 0 );
         if ( $first_id <= 0 ) { return []; }
@@ -607,7 +605,7 @@ final class Search_Engine {
         $idf_boost_enabled   = (bool) apply_filters( 'wssf_idf_boost', true );
         $exact_match_enabled = (bool) apply_filters( 'wssf_exact_match_boost', true );
         $balance_power       = (float) apply_filters( 'wssf_term_balance_power',
-            class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_term_balance_power() : 0.0 );
+            Admin_Settings::get_term_balance_power() );
         $post_type_weights   = $this->get_post_type_weights();
 
         $terms = [];

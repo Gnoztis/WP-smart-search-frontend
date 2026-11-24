@@ -3,9 +3,9 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 if ( ! current_user_can( 'manage_options' ) ) { return; }
 
 $synonyms_raw = (string) get_option( 'wssf_synonyms', '' );
-$term_balance = WSSF_Admin_Settings::get_term_balance_power();
-$saved_weights = WSSF_Admin_Settings::get_post_type_weights();
-$post_types    = WSSF_Search_Engine::get_post_types();
+$term_balance = \WSSF\Admin_Settings::get_term_balance_power();
+$saved_weights = \WSSF\Admin_Settings::get_post_type_weights();
+$post_types    = \WSSF\Search_Engine::get_post_types();
 
 // Формируем «читаемый» вид синонимов для textarea.
 $synonyms_display = '';

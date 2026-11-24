@@ -101,7 +101,7 @@ final class Ajax_Handler {
 
             $posts_total = isset( $posts_result['total'] ) ? (int) $posts_result['total'] : 0;
 
-            $dym_enabled = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_did_you_mean_enabled() : true;
+            $dym_enabled = Admin_Settings::is_did_you_mean_enabled();
             if ( $posts_total === 0 && $raw !== '' && $dym_enabled ) {
                 try {
                     $suggestion = $this->build_suggestion( $raw, $cat_id, $post_type_filter, $tag_ids, $exclude_tag_ids );
@@ -151,7 +151,7 @@ final class Ajax_Handler {
             Security::log_event( 'nonce_failed', 'ajax:history' );
             wp_send_json_error( [ 'code' => 'wssf_bad_nonce', 'message' => 'Bad nonce' ], 403 );
         }
-        if ( class_exists( 'WSSF_Admin_Settings' ) && ! Admin_Settings::is_history_enabled() ) {
+        if ( ! Admin_Settings::is_history_enabled() ) {
             wp_send_json_error( [ 'message' => 'History disabled' ], 403 );
         }
         $user_id = get_current_user_id();

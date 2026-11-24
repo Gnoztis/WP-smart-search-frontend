@@ -2,9 +2,9 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 if ( ! current_user_can( 'manage_options' ) ) { return; }
 
-$stats = WSSF_Admin_Actions::get_index_stats();
+$stats = \WSSF\Admin_Actions::get_index_stats();
 
-$cron_status   = WSSF_Hooks::instance( WSSF_Plugin::instance() )->get_cron_status();
+$cron_status   = \WSSF\Hooks::instance( \WSSF\Plugin::instance() )->get_cron_status();
 $cron_on       = (bool) $cron_status['enabled'];
 $cron_next     = (int) $cron_status['next_run'];
 $cron_last_run = (string) $cron_status['last_run'];

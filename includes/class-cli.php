@@ -38,9 +38,7 @@ final class CLI {
         $indexer = new Indexer( new Tokenizer( new Morphology() ) );
         $indexer->create_table();
         $indexer->create_terms_table();
-        if ( class_exists( 'WSSF_MinHash' ) ) {
-            ( new MinHash( Plugin::instance()->cache ) )->create_table();
-        }
+        ( new MinHash( Plugin::instance()->cache ) )->create_table();
 
         $total = ( $mode === 'missing' )
             ? $indexer->count_missing_posts()

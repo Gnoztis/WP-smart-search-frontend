@@ -144,7 +144,7 @@ final class Migrations {
             require_once ABSPATH . 'wp-admin/includes/upgrade.php';
             dbDelta( $sql );
             $count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM `{$table}`" ); // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- literal SQL; the table name is validated with /^[a-zA-Z0-9_]+$/.
-            if ( $count === 0 && class_exists( 'WSSF_Stopwords' ) ) {
+            if ( $count === 0 ) {
                 Stopwords::instance()->load_defaults();
             }
         }

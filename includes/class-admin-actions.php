@@ -344,10 +344,8 @@ final class Admin_Actions {
         try {
             $indexer = new Indexer( new Tokenizer( new Morphology() ) );
 
-            if ( class_exists( 'WSSF_IOC_Map' ) ) {
-                $ioc_map = new IOC_Map( Plugin::instance()->cache );
-                $ioc_map->truncate();
-            }
+            $ioc_map = new IOC_Map( Plugin::instance()->cache );
+            $ioc_map->truncate();
 
             $post_types = Search_Engine::get_post_types();
             if ( ! empty( $post_types ) ) {
@@ -411,19 +409,15 @@ final class Admin_Actions {
             }
         }
 
-        if ( class_exists( 'WSSF_IOC_Map' ) ) {
-            try {
-                $ioc_map = new IOC_Map( Plugin::instance()->cache );
-                $ioc_map->truncate();
-            } catch ( \Throwable $e ) { /* ignore */ }
-        }
+        try {
+            $ioc_map = new IOC_Map( Plugin::instance()->cache );
+            $ioc_map->truncate();
+        } catch ( \Throwable $e ) { /* ignore */ }
 
-        if ( class_exists( 'WSSF_MinHash' ) ) {
-            try {
-                $mh = new MinHash( Plugin::instance()->cache );
-                $mh->truncate();
-            } catch ( \Throwable $e ) { /* ignore */ }
-        }
+        try {
+            $mh = new MinHash( Plugin::instance()->cache );
+            $mh->truncate();
+        } catch ( \Throwable $e ) { /* ignore */ }
 
         $cache = Plugin::instance()->cache;
         $cache->bump_generation();
@@ -655,9 +649,7 @@ final class Admin_Actions {
             $indexer = new Indexer( new Tokenizer( new Morphology() ) );
             $indexer->create_table();
             $indexer->create_terms_table();
-            if ( class_exists( 'WSSF_MinHash' ) ) {
-                ( new MinHash( Plugin::instance()->cache ) )->create_table();
-            }
+            ( new MinHash( Plugin::instance()->cache ) )->create_table();
             $total = ( $mode === 'missing' )
                 ? $indexer->count_missing_posts()
                 : $indexer->count_all_posts();

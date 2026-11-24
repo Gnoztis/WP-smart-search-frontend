@@ -77,11 +77,11 @@ final class Assets {
 
         if ( $css === '' && $js === '' ) { return; }
 
-        $dym_on     = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_did_you_mean_enabled() : true;
-        $sug_on     = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_suggestions_enabled() : true;
-        $history_on = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_history_enabled() : true;
-        $ac_on      = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::is_autocomplete_enabled() : true;
-        $ac_min     = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_autocomplete_min_len() : 2;
+        $dym_on     = Admin_Settings::is_did_you_mean_enabled();
+        $sug_on     = Admin_Settings::is_suggestions_enabled();
+        $history_on = Admin_Settings::is_history_enabled();
+        $ac_on      = Admin_Settings::is_autocomplete_enabled();
+        $ac_min     = Admin_Settings::get_autocomplete_min_len();
 
         $data = [
             'ajaxUrl'              => admin_url( 'admin-ajax.php' ),

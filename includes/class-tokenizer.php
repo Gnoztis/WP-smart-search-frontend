@@ -129,7 +129,7 @@ final class Tokenizer {
         if ( $token === '' ) { return false; }
 
         // YARA-токены — быстрая проверка вперёд.
-        if ( class_exists( 'WSSF_Yara' ) && Yara::is_yara_token( $token ) ) {
+        if ( Yara::is_yara_token( $token ) ) {
             return true;
         }
 
@@ -147,7 +147,7 @@ final class Tokenizer {
 
     public function groups_to_boolean_string( array $groups ): string {
         $synonyms = [];
-        if ( class_exists( 'WSSF_Admin_Settings' ) && method_exists( 'WSSF_Admin_Settings', 'get_synonyms' ) ) {
+        if ( method_exists( Admin_Settings::class, 'get_synonyms' ) ) {
             $synonyms = Admin_Settings::get_synonyms();
         }
 
@@ -209,10 +209,6 @@ final class Tokenizer {
 
     private function get_stopwords(): array {
         if ( $this->stopwords_cache !== null ) { return $this->stopwords_cache; }
-        if ( ! class_exists( 'WSSF_Stopwords' ) ) {
-            $this->stopwords_cache = [];
-            return [];
-        }
         try {
             $sw = Stopwords::instance();
             $this->stopwords_cache = $sw->is_enabled() ? $sw->get_all() : [];

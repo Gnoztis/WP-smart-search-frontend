@@ -7,7 +7,7 @@ if ( ! isset( $search_report ) || ! is_string( $search_report ) ) { $search_repo
 if ( ! isset( $search_last_query ) ) { $search_last_query = ''; }
 if ( ! isset( $action_url ) ) { $action_url = admin_url( 'admin-post.php' ); }
 
-$diag = WSSF_Admin_Diagnostics::instance();
+$diag = \WSSF\Admin_Diagnostics::instance();
 $env  = $diag->get_env_data();
 $diag_enabled = (bool) $env['diag_enabled'];
 ?>

@@ -63,9 +63,7 @@ final class CleanTalk {
      * - off:  never runs, even when CleanTalk is present.
      */
     public static function is_enabled(): bool {
-        $mode = class_exists( 'WSSF_Admin_Settings' )
-            ? Admin_Settings::get_cleantalk_mode()
-            : 'auto';
+        $mode = Admin_Settings::get_cleantalk_mode();
 
         if ( $mode === 'off' ) { return false; }
         if ( $mode === 'on' ) { return true; }
@@ -87,7 +85,7 @@ final class CleanTalk {
      */
     public static function state(): array {
         return [
-            'mode'      => class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_cleantalk_mode() : 'auto',
+            'mode'      => Admin_Settings::get_cleantalk_mode(),
             'available' => self::is_available(),
             'effective' => self::active(),
         ];
@@ -251,9 +249,7 @@ final class CleanTalk {
 
         $has_cache_plugins = function_exists( 'apbct_is_cache_plugins_exists' ) && apbct_is_cache_plugins_exists();
 
-        $strict_opt = class_exists( 'WSSF_Admin_Settings' )
-            ? Admin_Settings::get_strict_mode()
-            : 'auto';
+        $strict_opt = Admin_Settings::get_strict_mode();
         if ( $strict_opt === 'on' ) {
             $strict_mode = true;
         } elseif ( $strict_opt === 'off' ) {
@@ -493,8 +489,8 @@ final class CleanTalk {
     }
 
     private function verdict_ttl( int $allow ): int {
-        $opt_ttl_user  = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_ttl_user()  : 60;
-        $opt_ttl_guest = class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_ttl_guest() : 60;
+        $opt_ttl_user  = Admin_Settings::get_ttl_user();
+        $opt_ttl_guest = Admin_Settings::get_ttl_guest();
 
         if ( $opt_ttl_user === 0 && $opt_ttl_guest === 0 ) {
             return 0;

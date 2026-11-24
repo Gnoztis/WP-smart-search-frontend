@@ -117,7 +117,6 @@ final class Autocomplete {
      * ============================================================ */
 
     private function find_fuzzy_matches( string $q, int $limit ): array {
-        if ( ! class_exists( 'WSSF_Fuzzy_Index' ) ) { return []; }
         try {
             $fuzzy = new Fuzzy_Index( $this->cache );
             $alts  = $fuzzy->find_alternatives( [ $q ], $limit );

@@ -2,11 +2,11 @@
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 if ( ! current_user_can( 'manage_options' ) ) { return; }
 
-$index_stats = WSSF_Admin_Actions::get_index_stats();
-$sem_stats   = WSSF_Admin_Actions::get_semantic_stats();
+$index_stats = \WSSF\Admin_Actions::get_index_stats();
+$sem_stats   = \WSSF\Admin_Actions::get_semantic_stats();
 
 $env = [];
-try { $env = WSSF_Admin_Diagnostics::instance()->get_env_data(); }
+try { $env = \WSSF\Admin_Diagnostics::instance()->get_env_data(); }
 catch ( \Throwable $e ) { $env = []; }
 
 $nonce_reindex = wp_create_nonce( 'wssf_reindex_ajax' );
@@ -53,19 +53,19 @@ $diagnostics_url = admin_url( 'options-general.php?page=wssf-settings&tab=diagno
         <div class="wssf-stat">
             <div class="wssf-stat-label"><?php esc_html_e( '«Сырой» объём текста', 'wp-smart-search-frontend' ); ?></div>
             <div class="wssf-stat-value">
-                <?php echo esc_html( WSSF_Admin_Actions::format_bytes( (int) $index_stats['raw_data_size'] ) ); ?>
+                <?php echo esc_html( \WSSF\Admin_Actions::format_bytes( (int) $index_stats['raw_data_size'] ) ); ?>
             </div>
             <div class="wssf-stat-aux">
-                <?php printf( esc_html__( 'средняя запись: %s', 'wp-smart-search-frontend' ), esc_html( WSSF_Admin_Actions::format_bytes( (int) $index_stats['raw_avg_size'] ) ) ); ?>
+                <?php printf( esc_html__( 'средняя запись: %s', 'wp-smart-search-frontend' ), esc_html( \WSSF\Admin_Actions::format_bytes( (int) $index_stats['raw_avg_size'] ) ) ); ?>
             </div>
         </div>
         <div class="wssf-stat">
             <div class="wssf-stat-label"><?php esc_html_e( 'Физический размер в БД', 'wp-smart-search-frontend' ); ?></div>
             <div class="wssf-stat-value">
-                <?php echo esc_html( WSSF_Admin_Actions::format_bytes( (int) $index_stats['total_size'] ) ); ?>
+                <?php echo esc_html( \WSSF\Admin_Actions::format_bytes( (int) $index_stats['total_size'] ) ); ?>
             </div>
             <div class="wssf-stat-aux">
-                <?php printf( esc_html__( 'данные %s / индексы %s', 'wp-smart-search-frontend' ), esc_html( WSSF_Admin_Actions::format_bytes( (int) $index_stats['data_length'] ) ), esc_html( WSSF_Admin_Actions::format_bytes( (int) $index_stats['index_length'] ) ) ); ?>
+                <?php printf( esc_html__( 'данные %s / индексы %s', 'wp-smart-search-frontend' ), esc_html( \WSSF\Admin_Actions::format_bytes( (int) $index_stats['data_length'] ) ), esc_html( \WSSF\Admin_Actions::format_bytes( (int) $index_stats['index_length'] ) ) ); ?>
             </div>
         </div>
         <div class="wssf-stat">

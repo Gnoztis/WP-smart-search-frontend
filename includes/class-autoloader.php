@@ -18,6 +18,10 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  * cannot go stale. Only files inside WSSF_PATH are ever included, the relative
  * path is validated, and a class that is not ours returns without including
  * anything — this loader never interferes with another plugin's autoloader.
+ *
+ * Since 6.0.0 the old global names (WSSF_Foo_Bar) are gone for good: the
+ * class_alias() bridge was removed with includes/aliases.php. Only the names
+ * in this namespace exist.
  */
 final class WSSF_Autoloader {
 
@@ -49,45 +53,6 @@ final class WSSF_Autoloader {
         if ( ! is_readable( $path ) ) { return; }
 
         require_once $path; // phpcs:ignore -- the path is derived from the class name, validated against ^[a-z0-9-]+\.php$, and resolved inside WSSF_PATH.
-    }
-
-    /**
-     * Creates the old global name of a moved class on demand.
-     *
-     * Called from includes/aliases.php when code asks for WSSF_Foo_Bar: the
-     * namespaced class WSSF\Foo_Bar is resolved through the loader and then
-     * aliased, so both names are the same class and the old one costs nothing
-     * until it is actually used.
-     */
-    public static function alias_old_name( string $old ): void {
-        if ( class_exists( $old, false ) ) { return; }
-
-        $new = self::namespaced_name( $old );
-
-        if ( $new === null ) { return; }
-
-        if ( self::class_to_file( $new ) === null ) { return; }
-
-        if ( ! class_exists( $new ) ) { return; }
-
-        class_alias( $new, $old );
-    }
-
-    /**
-     * WSSF_Foo_Bar => WSSF\Foo_Bar, or null when the name is not ours.
-     */
-    public static function namespaced_name( string $old ): ?string {
-        if ( strncmp( $old, 'WSSF_', 5 ) !== 0 || strlen( $old ) <= 5 ) {
-            return null;
-        }
-
-        $short = substr( $old, 5 );
-
-        if ( ! preg_match( '/^[A-Za-z][A-Za-z0-9_]*$/', $short ) ) {
-            return null;
-        }
-
-        return self::PREFIX . $short;
     }
 
     /**

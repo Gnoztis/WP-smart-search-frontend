@@ -90,8 +90,8 @@ final class Admin_Diagnostics {
             'index_count'          => 0,
             'index_total_posts'    => 0,
             'cleantalk_active'     => function_exists( 'apbct_base_call' ) ? 'yes' : 'no',
-            'cleantalk_mode'       => class_exists( 'WSSF_Admin_Settings' ) ? Admin_Settings::get_cleantalk_mode() : 'auto',
-            'cleantalk_effective'  => ( class_exists( 'WSSF_CleanTalk' ) && CleanTalk::active() ) ? 'yes' : 'no',
+            'cleantalk_mode'       => Admin_Settings::get_cleantalk_mode(),
+            'cleantalk_effective'  => CleanTalk::active() ? 'yes' : 'no',
             'cleantalk_key_ok'     => 'N/A',
             'cleantalk_cookies'    => 'N/A',
             'diag_enabled'         => (bool) apply_filters( 'wssf_diag_enabled', false ),
@@ -268,7 +268,7 @@ final class Admin_Diagnostics {
 
         $plugin = Plugin::instance();
         if ( ! $plugin instanceof Plugin ) {
-            $out['error'] = 'WSSF_Plugin not initialized';
+            $out['error'] = 'WSSF\Plugin not initialized';
             return $out;
         }
 
