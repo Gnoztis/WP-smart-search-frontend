@@ -675,7 +675,7 @@ final class Admin_Diagnostics {
         $saved_force       = null;
 
         if ( class_exists( '\\Cleantalk\\ApbctWP\\Variables\\Cookie' ) ) {
-            $saved_force = \Cleantalk\ApbctWP\Variables\Cookie::$force_alt_cookies_global ?? null;
+            $saved_force = \Cleantalk\ApbctWP\Variables\Cookie::$force_alt_cookies_global ?? null; // class-refs:ignore -- optional CleanTalk integration, feature-detected with class_exists() above; no hard dependency.
         }
 
         if ( $sc['strip_cookies'] ) {
@@ -728,7 +728,7 @@ final class Admin_Diagnostics {
             $apbct->plugin_request_ids = $saved_request_ids;
         }
         if ( $saved_force !== null && class_exists( '\\Cleantalk\\ApbctWP\\Variables\\Cookie' ) ) {
-            \Cleantalk\ApbctWP\Variables\Cookie::$force_alt_cookies_global = $saved_force;
+            \Cleantalk\ApbctWP\Variables\Cookie::$force_alt_cookies_global = $saved_force; // class-refs:ignore -- same optional integration; the guard is on the line above.
         }
 
         $allow          = null;
