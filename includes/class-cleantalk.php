@@ -111,6 +111,64 @@ final class CleanTalk {
         return is_string( $fields ) ? $fields : '';
     }
 
+    /**
+     * Result of the CleanTalk JavaScript test for this request.
+     *
+     * CleanTalk passes the value in a cookie when its cookie mode is on, and in
+     * a hidden field otherwise. Reading only the hidden field meant js_on was 0
+     * on every site with cookies enabled, and the service answered the visitor
+     * with "Включите JavaScript" — which is exactly what the owner saw on a
+     * phone, where the search form is a plain GET form.
+     *
+     * The service's own helper is used when it exists, so a static key, a
+     * rotating key and the alternative cookie mode all keep working.
+     */
+    private function js_on(): int {
+        $candidates = [];
+
+        if ( isset( $_COOKIE['ct_checkjs'] ) && is_string( $_COOKIE['ct_checkjs'] ) ) {
+            $candidates[] = sanitize_text_field( wp_unslash( $_COOKIE['ct_checkjs'] ) );
+        }
+
+        foreach ( [ 'ct_checkjs', 'ct_checkjs_search_default' ] as $field ) {
+            if ( isset( $_POST[ $field ] ) && is_string( $_POST[ $field ] ) ) {
+                $candidates[] = sanitize_text_field( wp_unslash( $_POST[ $field ] ) );
+            }
+
+            if ( isset( $_GET[ $field ] ) && is_string( $_GET[ $field ] ) ) {
+                $candidates[] = sanitize_text_field( wp_unslash( $_GET[ $field ] ) );
+            }
+        }
+
+        if ( function_exists( 'apbct_js_test' ) ) {
+            foreach ( $candidates as $candidate ) {
+                if ( '' === $candidate ) {
+                    continue;
+                }
+
+                try {
+                    if ( apbct_js_test( $candidate, true ) || apbct_js_test( $candidate ) ) {
+                        return 1;
+                    }
+                } catch ( \Throwable $e ) {
+                    continue;
+                }
+            }
+
+            return 0;
+        }
+
+        // No helper: the service's key is a long hex string, anything else —
+        // including the literal 0 that marks "JavaScript is off" — is a no.
+        foreach ( $candidates as $candidate ) {
+            if ( '' !== $candidate && '0' !== $candidate && preg_match( '/^[a-f0-9]{32,64}$/i', $candidate ) ) {
+                return 1;
+            }
+        }
+
+        return 0;
+    }
+
     /* ============================================================
      *  GET-проверка (при загрузке страницы поиска)
      * ============================================================ */
@@ -151,15 +209,7 @@ final class CleanTalk {
         }
 
         try {
-            $js_on = 0;
-            if ( ! empty( $_GET['ct_checkjs_search_default'] )
-                && is_string( $_GET['ct_checkjs_search_default'] )
-            ) {
-                $key = sanitize_text_field( wp_unslash( $_GET['ct_checkjs_search_default'] ) );
-                if ( $key !== '0' && preg_match( '/^[a-f0-9]{64}$/i', $key ) ) {
-                    $js_on = 1;
-                }
-            }
+            $js_on = $this->js_on();
 
             $context = [
                 's'     => $search_query,
@@ -369,7 +419,7 @@ final class CleanTalk {
                 'sender_email'     => '',
                 'sender_nickname'  => '',
                 'sender_ip'        => $this->security->get_client_ip(),
-                'js_on'            => 1,
+                'js_on'            => $this->js_on(),
                 'post_info'        => $post_info,
                 'sender_info'      => [ 'form_name' => 'WP Smart Search' ],
                 'exception_action' => 0,
