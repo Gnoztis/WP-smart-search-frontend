@@ -169,6 +169,49 @@ final class CleanTalk {
         return 0;
     }
 
+    /**
+     * Fills the CleanTalk field immediately, instead of waiting a second.
+     *
+     * CleanTalk renders its hidden field with value="0" and replaces it in a
+     * setTimeout() after one second. A visitor who types a query and presses
+     * Enter right away sends that zero, and the service answers "Forbidden.
+     * Please enable JavaScript." — which is what happens on a phone, where the
+     * form is submitted faster than the timer fires.
+     *
+     * The public key is already in the page (ctPublic), so the field is filled
+     * at once and again on submit. Nothing is invented: the value is the one
+     * CleanTalk itself would write.
+     */
+    public function print_js_filler(): void {
+        if ( ! self::active() ) {
+            return;
+        }
+        ?>
+        <script>
+        (function () {
+            function fill() {
+                if (!window.ctPublic || !window.ctPublic.ct_checkjs_key) { return; }
+                var key = String(window.ctPublic.ct_checkjs_key);
+                var fields = document.querySelectorAll('input[name^="ct_checkjs"]');
+                for (var i = 0; i < fields.length; i++) {
+                    var value = fields[i].value;
+                    if (value === '' || value === '0') {
+                        fields[i].value = key;
+                    }
+                }
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', fill);
+            } else {
+                fill();
+            }
+            document.addEventListener('submit', fill, true);
+            window.setTimeout(fill, 1200);
+        }());
+        </script>
+        <?php
+    }
+
     /* ============================================================
      *  GET-проверка (при загрузке страницы поиска)
      * ============================================================ */

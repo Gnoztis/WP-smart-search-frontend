@@ -3,7 +3,7 @@
  * Plugin Name: WP Smart Search (Frontend)
  * Plugin URI: https://github.com/Gnoztis/WP-smart-search-frontend
  * Description: AJAX-поиск с фасетными фильтрами, локальным расширением запроса и поддержкой IOC.
- * Version: 6.0.1
+ * Version: 6.0.2
  * Author: Gnostis
  * Author URI: https://github.com/Gnoztis
  * Requires at least: 7.0
@@ -18,7 +18,7 @@ declare(strict_types=1);
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
 
-define( 'WSSF_VERSION', '6.0.1' );
+define( 'WSSF_VERSION', '6.0.2' );
 define( 'WSSF_PLUGIN_FILE', __FILE__ );
 define( 'WSSF_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WSSF_URL',  plugin_dir_url( __FILE__ ) );
@@ -36,7 +36,7 @@ if ( ! defined( 'WSSF\URL' ) )     { define( 'WSSF\URL', WSSF_URL ); }
 
 // The plugin ships its own loader for the WSSF namespace: no Composer, no
 // vendor directory, nothing outside this directory. Classes are loaded on
-// demand from includes/. 6.0.1 removed the old global class names.
+// demand from includes/. 6.0.2 removed the old global class names.
 require_once WSSF_PATH . 'includes/autoload.php';
 
 // Generated file, written by tools/scripts/sync-updater.mjs. It declares the

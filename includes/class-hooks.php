@@ -33,6 +33,11 @@ final class Hooks {
 
         add_filter( 'get_search_form', [ $this->plugin->cleantalk, 'add_fields_to_search_form' ], 99 );
 
+        // The field CleanTalk prints carries value="0" for a second; filling it
+        // from the public key immediately keeps a fast submit from looking like
+        // a bot.
+        add_action( 'wp_footer', [ $this->plugin->cleantalk, 'print_js_filler' ], 99 );
+
         add_action( 'save_post',        [ $this, 'bump_on_save_post' ], 10, 3 );
         add_action( 'deleted_post',     [ $this->plugin->cache, 'bump_generation' ] );
         add_action( 'set_object_terms', [ $this->plugin->cache, 'bump_generation' ] );
